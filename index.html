@@ -263,47 +263,57 @@
 <div class="panel">
   <div class="panel-top">
     <div class="flag">เสนอขาย (หุ้นกู้ตลาดรอง)</div>
-    <div class="date-pill" id="current-date">5 สิงหาคม 2569</div>
+    <div class="date-pill">5 สิงหาคม 2569</div>
   </div>
 
-  <!-- จำลองตัวอย่างการแสดงผลบัตรหุ้นกู้เพื่อให้สามารถกดใช้งานได้จริง -->
-  <div class="cards">
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <span class="new-badge">NEW</span>
-          <div class="bond-name"><span class="star">★</span>หุ้นกู้บริษัท แสนสิริ จำกัด (มหาชน)</div>
-          <div class="bond-issuer">SIRI271A - เสนอขายนักลงทุน PO</div>
-          <div class="bond-rights">จ่ายดอกเบี้ยทุก 3 เดือน</div>
-        </div>
-        <div class="ytm-box">
-          <div class="lbl">YTM (ต่อปี)</div>
-          <div class="ytm">3.85%</div>
-        </div>
-      </div>
-      <div class="metrics-grid">
-        <div class="metric"><div class="m-lbl">อายุคงเหลือ</div><div class="m-val">2.5 ปี</div></div>
-        <div class="metric"><div class="m-lbl">อันดับเครดิต</div><div class="m-val">BBB+</div></div>
-        <div class="metric"><div class="m-lbl">ราคา/หน่วย</div><div class="m-val">1,000 บาท</div></div>
-      </div>
-      <div class="card-foot">
-        <div>ขั้นต่ำการจองซื้อ: <b>100,000 บาท</b></div>
-        <!-- ผูกคำสั่งจำลองระบุชื่อหุ้นกู้และผลตอบแทนในฟังก์ชัน JavaScript -->
-        <button class="buy-btn" onclick="sendInterestNotification('หุ้นกู้บริษัท แสนสิริ จำกัด (มหาชน) (SIRI271A)', '3.85%')">สนใจซื้อ</button>
-      </div>
+  <!-- Search Box -->
+  <div class="search-box">
+    <div class="search-icon">
+      <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="none" stroke="#7A6B62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     </div>
+    <input type="text" placeholder="ค้นหาชื่อหุ้นกู้ หรือชื่อบริษัทย่อ...">
   </div>
-</div>
 
-<!-- ---------- JavaScript Connection Module ---------- -->
-<script>
-  // โดเมน Endpoint ของ Edge Function ที่คุณสร้างไว้สำเร็จบนระบบคลาวด์ Supabase
-  const SUPABASE_API_URL = "https://supabase.co";
+  <!-- Filters -->
+  <div class="filters">
+    <select id="filter-ytm">
+      <option value="">YTM: ทั้งหมด</option>
+      <option value="5">มากกว่า 5%</option>
+      <option value="4-5">4-5%</option>
+      <option value="3-4">3-4%</option>
+      <option value="2-3">2-3%</option>
+      <option value="2">น้อยกว่า 2%</option>
+    </select>
 
-  async function sendInterestNotification(bondName, ytmRate) {
-    // เปลี่ยนข้อความบนปุ่มล็อกชั่วคราวเพื่อแสดงสถิติกำลังโหลดให้ผู้ใช้เห็น
-    const activeBtn = event.target;
-    const originalText = activeBtn.innerText;
-    activeBtn.innerText = "กำลังส่ง...";
-    activeBtn.disabled = true;
+    <select id="filter-years">
+      <option value="">อายุคงเหลือ (ปี): ทั้งหมด</option>
+      <option value="1">น้อยกว่า 1 ปี</option>
+      <option value="1-2">1-2 ปี</option>
+      <option value="2-3">2-3 ปี</option>
+      <option value="3-4">3-4 ปี</option>
+      <option value="4-5">4-5 ปี</option>
+      <option value="5">มากกว่า 5 ปี</option>
+    </select>
 
+    <select id="filter-credit-comp">
+      <option value="">เครดิต(บริษัท): ทั้งหมด</option>
+      <option value="AAA">AAA</option>
+      <option value="AA">AA</option>
+      <option value="A">A</option>
+      <option value="BBB">BBB</option>
+      <option value="Unrated">Unrated</option>
+    </select>
+
+    <select id="filter-credit-bond">
+      <option value="">เครดิต(ตราสาร): ทั้งหมด</option>
+      <option value="AAA">AAA</option>
+      <option value="AA">AA</option>
+      <option value="A">A</option>
+      <option value="BBB">BBB</option>
+      <option value="Unrated">Unrated</option>
+    </select>
+
+    <select id="filter-investor">
+      <option value="">นักลงทุน: ทั้งหมด</option>
+      <option value="PO">ประชาชนทั่วไป (PO)</option>
+      <option value="HNW">รายใหญ่/สถาบัน</option>
