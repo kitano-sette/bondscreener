@@ -228,6 +228,11 @@
     border-radius:14px;
     padding:14px;
     background:var(--paper);
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .card:has(.buy-expand.open){
+    border-color:var(--maroon);
+    box-shadow:0 0 0 3px rgba(110,46,50,0.14);
   }
   .card-head{display:flex; justify-content:space-between; gap:8px; align-items:flex-start;}
   .bond-name{font-weight:700; color:var(--brown); font-size:16px;}
@@ -257,7 +262,7 @@
   .ytm-box{
     text-align:right; flex:none;
   }
-  .ytm-box .lbl{font-size:10px; color:var(--ink-soft); margin-bottom:2px;}
+  .ytm-box .lbl{font-size:10px; font-weight:700; color:var(--brown); margin-bottom:2px;}
   .ytm{
     background:#F6D746; font-weight:800; color:var(--ink);
     padding:5px 11px; border-radius:6px; display:inline-block;
@@ -1035,6 +1040,7 @@ function mapWarehouseBond(w){
     _id: w.id || '', // stable Supabase row id — persists across reloads, used as the cart's item key
     code: w.code || '',
     issuer: w.issuerName || '',
+    bondName: w.instrumentName || '',
     investor: investorNorm(w.investorType) || 'PO',
     ytm: Number(w.ytmSell) || 0,               // YTM = "YTM ขาย (%)"
     ratingLabel: w.ratingInstrument || '',       // เครดิต(ตราสาร) = "อันดับความน่าเชื่อถือ (ตราสาร)"
@@ -1061,6 +1067,7 @@ function rowToWarehouseShape(r){
     id: r.id,
     code: r.code,
     issuerName: r.issuer_name,
+    instrumentName: r.instrument_name,
     investorType: r.investor_type,
     ytmSell: r.ytm_sell,
     ratingCompany: r.rating_company,
@@ -1306,7 +1313,7 @@ function bondCardHTML(b, instanceCode, opts){
       <div class="card-head">
         <div>
           <div class="bond-name">${isNewBond(b) ? '<span class="new-badge">NEW</span>' : ''}${b.highlight ? '<span class="star">★</span>' : ''}${b.code}</div>
-          <div class="bond-issuer">${b.issuer}</div>
+          <div class="bond-issuer">${b.bondName || b.issuer}</div>
           ${b.rights ? `<div class="bond-rights">${b.rights}</div>` : ''}
           ${featureTag(b.feature)}
         </div>
@@ -1714,6 +1721,15 @@ document.addEventListener('click', (e)=>{
             thankYou.classList.add('show');
             requestAnimationFrame(()=> ensureVisible(thankYou));
           }
+          // ส่งคำสั่งซื้อจากตะกร้าสำเร็จแล้ว — ล้างหุ้นกู้ที่เพิ่งส่งออกจากตะกร้า
+          // ทั้งหมด (ทั้งค่าที่เก็บใน localStorage และปุ่ม/badge ที่แสดงผลอยู่)
+          entries.forEach(({bond})=>{
+            removeFromCart(bond._id);
+            document.querySelectorAll(`.cart-toggle-btn[data-id="${CSS.escape(bond._id)}"]`).forEach(btn=>{
+              btn.classList.remove('in-cart');
+            });
+          });
+          updateCartFabBadge();
         } else {
           const privacyEl = document.getElementById(`privacy-${code}`);
           const thankYou = document.getElementById(`thankyou-${code}`);
