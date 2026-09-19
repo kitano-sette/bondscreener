@@ -64,15 +64,6 @@
     text-shadow:0 4px 0 rgba(110,46,50,0.35);
     margin:0;
   }
-  .title-byline{
-    text-align:center;
-    margin-top:4px;
-    font-family:'Noto Sans Thai', sans-serif;
-    font-weight:600;
-    font-size:11px;
-    color:rgba(255,255,255,0.85);
-    letter-spacing:.3px;
-  }
   .title-sub{
     display:inline-block;
     margin-top:6px;
@@ -582,6 +573,112 @@
     color:#F3E7C9; font-weight:600; font-size:12px; text-align:center;
   }
 
+  /* ---------- ขอบไฟวนรอบการ์ด (ดึงความสนใจ) ---------- */
+  @property --glow-angle{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
+  .glow-run{
+    position:relative;
+    box-shadow:0 0 16px -2px rgba(232,134,42,0.35);
+  }
+  .glow-run::after{
+    content:''; position:absolute; inset:-3px;
+    border-radius:inherit; padding:3px;
+    background:conic-gradient(from var(--glow-angle),
+      rgba(232,134,42,0) 0deg, rgba(232,134,42,0) 190deg,
+      var(--amber2) 270deg, #FFE7B0 335deg, var(--amber1) 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    filter:drop-shadow(0 0 5px rgba(232,134,42,0.75));
+    animation:glowSpin 2.2s linear infinite;
+    pointer-events:none;
+  }
+  /* การ์ดความเป็นส่วนตัว: ขอบเรืองแสงวูบวาบช้าๆ (ไม่หมุน) */
+  .privacy-notice.glow-run::after{display:none;}
+  .privacy-notice.glow-run{
+    border-color:var(--amber2);
+    animation:privacyPulse 4s ease-in-out infinite;
+  }
+  @keyframes privacyPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(232,134,42,0), 0 0 2.5px 0 rgba(232,134,42,0.12); border-color:#EBC38A; }
+    50%{ box-shadow:0 0 0 1.5px rgba(232,134,42,0.11), 0 0 11px 2px rgba(232,134,42,0.3); border-color:var(--amber2); }
+  }
+  @keyframes glowSpin{ to{ --glow-angle:360deg; } }
+  @media (prefers-reduced-motion:reduce){
+    .glow-run::after{animation:none;}
+    .privacy-notice.glow-run{animation:none; box-shadow:0 0 0 1.5px rgba(232,134,42,0.11), 0 0 7px 1px rgba(232,134,42,0.2);}
+  }
+
+  /* ---------- Warning popup (ก่อนกรอกจำนวนสนใจซื้อ) ---------- */
+  .warn-overlay{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(51,38,33,0.62);
+    display:none; align-items:center; justify-content:center;
+    padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));
+  }
+  .warn-overlay.open{display:flex;}
+  .warn-box{
+    width:100%; max-width:440px;
+    max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px);
+    display:flex; flex-direction:column;
+    background:var(--paper);
+    border-radius:20px; overflow:hidden;
+    box-shadow:0 28px 60px -12px rgba(0,0,0,0.5);
+  }
+  .warn-overlay.open .warn-box{animation:warnIn .22s ease-out;}
+  @keyframes warnIn{
+    from{opacity:0; transform:translateY(12px) scale(.97);}
+    to{opacity:1; transform:none;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .warn-overlay.open .warn-box{animation:none;}
+  }
+  .warn-head{
+    flex:none;
+    display:flex; align-items:center; gap:12px;
+    padding:16px 20px;
+    background:linear-gradient(120deg,var(--amber1),var(--amber2));
+    color:#fff;
+  }
+  .warn-icon{
+    flex:none; width:38px; height:38px; border-radius:999px;
+    background:rgba(255,255,255,0.22);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .warn-title{font-family:'Kanit','Noto Sans Thai',sans-serif; font-weight:700; font-size:20px; line-height:1.2;}
+  .warn-body{
+    flex:1 1 auto; min-height:0;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding:16px 20px 8px;
+  }
+  .warn-lead{
+    margin:0 0 14px; padding:12px 14px;
+    background:#FBEAEA; border-radius:12px;
+    color:var(--red); font-weight:700; font-size:13px; line-height:1.75;
+  }
+  .warn-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+  .warn-list li{
+    position:relative; padding-left:18px;
+    font-size:12.5px; line-height:1.75; color:var(--ink);
+  }
+  .warn-list li::before{
+    content:''; position:absolute; left:2px; top:.7em;
+    width:7px; height:7px; border-radius:999px; background:var(--amber2);
+  }
+  .warn-foot{
+    flex:none; padding:12px 20px 18px;
+    background:var(--paper);
+    box-shadow:0 -10px 14px -12px rgba(51,38,33,0.28);
+  }
+  .warn-ack-btn{
+    width:100%;
+    background:var(--maroon); color:#fff; border:none;
+    padding:13px; border-radius:11px;
+    font-family:inherit; font-weight:700; font-size:14.5px;
+    cursor:pointer;
+  }
+  .warn-ack-btn:hover{background:#5a2529;}
+  .warn-ack-btn:active{transform:scale(0.98);}
+  .warn-ack-btn:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
+
   @media (min-width:420px){
     .filters{grid-template-columns:1fr 1fr;}
   }
@@ -599,7 +696,6 @@
     <div class="coin c3"></div>
     <div class="title-block">
       <h1 class="title-main">BOND SCREENER</h1>
-      <div class="title-byline">Secondary Market</div>
     </div>
   </div>
 
@@ -724,6 +820,30 @@
     </ul>
   </div>
 
+
+  <div class="warn-overlay" id="warnOverlay" role="dialog" aria-modal="true" aria-labelledby="warnTitle">
+    <div class="warn-box">
+      <div class="warn-head">
+        <span class="warn-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </span>
+        <div class="warn-title" id="warnTitle">คำเตือน</div>
+      </div>
+      <div class="warn-body">
+        <p class="warn-lead">ราคาที่แสดงเป็นเพียง Indicative Quotation (ราคาชี้นำ) เท่านั้น ซึ่งราคาดังกล่าวอาจมีการเปลี่ยนแปลงโดยขึ้นอยู่กับความผันผวนของราคาตลาด (Market Fluctuation), วันที่ทำรายการซื้อขาย (Trade) และวันที่ชำระราคา (Settlement)</p>
+        <ul class="warn-list">
+          <li>การลงทุนมีความเสี่ยง ผู้ลงทุนโปรดศึกษาลักษณะของหุ้นกู้ เงื่อนไขผลตอบแทนและความเสี่ยงจากหนังสือชี้ชวนก่อนการตัดสินใจลงทุน</li>
+          <li>ผลตอบแทนที่เสนอขายดังระบุข้างต้น เป็นอัตราผลตอบแทนอ้างอิง สำหรับใช้เป็นข้อมูลในการตัดสินใจของนักลงทุนเท่านั้น</li>
+          <li>กรณีเสนอขายนักลงทุนรายใหญ่ (HNW) จะต้องเป็นไปตามคุณสมบัติที่ ก.ล.ต. กำหนด</li>
+          <li>ข้อมูลข้างต้นบริษัทขอสงวนสิทธิ์ในการเปลี่ยนแปลงโดยมิได้ต้องแจ้งให้ทราบล่วงหน้า</li>
+          <li>YTM = Yield To Maturity หรืออัตราผลตอบแทนที่ผู้ลงทุนจะได้รับในกรณีที่ผู้ลงทุนถือหุ้นกู้ตัวนั้น จนครบกำหนดอายุตราสาร</li>
+        </ul>
+      </div>
+      <div class="warn-foot">
+        <button type="button" class="warn-ack-btn" id="warnAckBtn">รับทราบ</button>
+      </div>
+    </div>
+  </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -884,6 +1004,7 @@ function updateCartFabBadge(){
 function renderCartPanel(){
   const wrap = document.getElementById('cartListWrap');
   if(!wrap) return;
+  resetCartScrollRoom();
   const items = BONDS.filter(b=> cartIds.includes(b._id));
   if(items.length === 0){
     wrap.innerHTML = `<div class="cart-empty">ยังไม่มีหุ้นกู้ในตะกร้า</div>`;
@@ -908,6 +1029,7 @@ function renderCartCheckout(){
   if(!wrap) return;
   const items = BONDS.filter(b=> cartIds.includes(b._id));
   if(items.length === 0){ renderCartPanel(); return; }
+  resetCartScrollRoom();
 
   wrap.innerHTML = `
     <div class="checkout-header">
@@ -1427,6 +1549,84 @@ function ensureVisible(el){
   }
 }
 
+// เลื่อนให้ element มาอยู่กลางจอ (ทำงานทั้งหน้าหลักและใน overlay ตะกร้า)
+// keepEl: element ที่ต้องไม่หลุดขอบล่างของจอ (เช่น ปุ่ม "ส่ง") กรณี element ใหญ่กว่าจอ
+// เลื่อนหน้าจอ (หน้าหลัก หรือ overlay ตะกร้า) ด้วยระยะ delta
+// ใน overlay ตะกร้า: จะเพิ่มพื้นที่ว่างด้านล่าง "เฉพาะเท่าที่จำเป็น" ตอนที่ต้องเลื่อนเลยจุดสุดท้ายเท่านั้น
+// (เช่น ให้ช่องล่างสุดมาอยู่กลางจอได้) ปกติหน้าจึงไม่มีที่ว่างเกินมา
+function resetCartScrollRoom(){
+  const o = document.getElementById('cartOverlay');
+  if(!o) return;
+  o.style.paddingBottom = '';
+  delete o.dataset.extra;
+}
+function scrollWithRoom(el, delta){
+  const scroller = el.closest('.cart-overlay');
+  if(!scroller){ window.scrollBy({ top: delta, behavior:'smooth' }); return; }
+  if(delta > 0){
+    const need = scroller.scrollTop + delta - (scroller.scrollHeight - scroller.clientHeight);
+    if(need > 0){
+      const extra = (parseFloat(scroller.dataset.extra) || 0) + need;
+      scroller.dataset.extra = String(extra);
+      scroller.style.paddingBottom = `${16 + extra}px`;
+    }
+  }
+  scroller.scrollBy({ top: delta, behavior:'smooth' });
+}
+
+function centerInView(el, keepEl){
+  if(!el) return;
+  const viewH = window.innerHeight || document.documentElement.clientHeight;
+  const rect = el.getBoundingClientRect();
+  let delta = (rect.top + rect.height / 2) - viewH / 2;
+  if(keepEl){
+    const keepBottom = keepEl.getBoundingClientRect().bottom - delta;
+    const limit = viewH - 20;
+    if(keepBottom > limit) delta += keepBottom - limit;
+  }
+  if(Math.abs(delta) < 2) return;
+  scrollWithRoom(el, delta);
+}
+
+// ขอบไฟวนของการ์ดความเป็นส่วนตัว: วนอยู่ตราบที่ยังไม่ติ๊กช่องยินยอม
+function syncPrivacyGlow(privacy){
+  if(!privacy) return;
+  const cb = privacy.querySelector('.privacy-checkbox');
+  privacy.classList.toggle('glow-run', !(cb && cb.checked));
+}
+
+// เลื่อนแถวปุ่ม Previous / Submit ให้เห็นทั้งสองปุ่มโดยอัตโนมัติ ถ้าอยู่นอกจอ:
+// ยกขึ้นมาให้ขอบล่างของแถวปุ่มอยู่เหนือขอบจอล่าง 20% ของความสูงจอ
+// (ถ้าเห็นปุ่มครบอยู่แล้วจะไม่เลื่อน)
+function scrollButtonsIntoView(row){
+  if(!row) return;
+  const rect = row.getBoundingClientRect();
+  const viewH = window.innerHeight || document.documentElement.clientHeight;
+  if(rect.top >= 0 && rect.bottom <= viewH) return;
+  const delta = rect.bottom - viewH * 0.8;
+  scrollWithRoom(row, delta);
+}
+
+// ---------- Warning popup: แสดงก่อนให้กรอกจำนวนสนใจซื้อ ต้องกด "รับทราบ" จึงไปต่อได้ ----------
+const warnOverlayEl = document.getElementById('warnOverlay');
+const warnAckBtnEl = document.getElementById('warnAckBtn');
+let warnPendingAction = null;
+function showBondWarning(onAcknowledge){
+  warnPendingAction = onAcknowledge;
+  warnOverlayEl.classList.add('open');
+  document.documentElement.style.overflow = 'hidden'; // กันหน้าจอด้านหลังเลื่อนขณะแสดง popup
+  const body = warnOverlayEl.querySelector('.warn-body');
+  if(body) body.scrollTop = 0;
+  warnAckBtnEl.focus({ preventScroll:true });
+}
+warnAckBtnEl.addEventListener('click', ()=>{
+  warnOverlayEl.classList.remove('open');
+  document.documentElement.style.overflow = '';
+  const action = warnPendingAction;
+  warnPendingAction = null;
+  if(action) action();
+});
+
 // เช็คความถูกต้องของอีเมล พร้อมแสดง/ซ่อนข้อความเตือนเหนือช่องกรอกอีเมลของบอนด์นั้นๆ
 // forceShowEmpty: true เมื่อกดปุ่ม "ส่ง" (บังคับเช็คแม้ยังไม่ได้พิมพ์อะไร)
 //                 false เมื่อ blur ออกจากช่อง (ยังไม่เตือนถ้าผู้ใช้ยังไม่ได้พิมพ์อะไรเลย)
@@ -1491,7 +1691,11 @@ document.addEventListener('click', (e)=>{
   // Open the checkout summary (one screen listing every cart item)
   const cartBuyBtn = e.target.closest('#cartBuyBtn');
   if(cartBuyBtn){
-    renderCartCheckout();
+    showBondWarning(()=>{
+      renderCartCheckout();
+      const overlay = document.getElementById('cartOverlay');
+      if(overlay) overlay.scrollTop = 0; // แสดงหน้าสรุปคำสั่งซื้อตั้งแต่ต้นหน้า
+    });
     return;
   }
 
@@ -1519,11 +1723,16 @@ document.addEventListener('click', (e)=>{
       const itemNotice = document.getElementById(`itemNotice-${code}`);
       const hasAmount = (moneyField && moneyField.value.trim() !== '') || (unitField && unitField.value.trim() !== '');
       if(itemNotice) itemNotice.classList.toggle('show', !hasAmount);
-      if(!hasAmount && !firstInvalid) firstInvalid = itemNotice;
+      [moneyField, unitField].forEach(f=>{ if(f) f.classList.toggle('input-error', !hasAmount); });
+      if(!hasAmount && !firstInvalid) firstInvalid = moneyField ? moneyField.closest('.amount-fields') : itemNotice;
     });
+    // ช่องข้อมูลติดต่อกลับที่ยังว่าง ขึ้นขอบสีแดงเหมือนช่องจำนวน (แสดงพร้อมกันแม้ช่องจำนวนยังไม่ครบ)
+    const commentEl = document.getElementById('comment-checkoutGlobal');
+    if(commentEl) commentEl.classList.toggle('input-error', commentEl.value.trim() === '');
+
     if(firstInvalid){
       if(globalNotice) globalNotice.classList.remove('show');
-      requestAnimationFrame(()=> ensureVisible(firstInvalid));
+      requestAnimationFrame(()=> centerInView(firstInvalid)); // ฟิลด์ที่ยังไม่กรอกมาอยู่กลางจอ
       return;
     }
 
@@ -1534,7 +1743,7 @@ document.addEventListener('click', (e)=>{
         globalNotice.textContent = 'กรุณากรอกข้อมูลติดต่อกลับก่อนกดส่ง';
         globalNotice.classList.add('show');
       }
-      requestAnimationFrame(()=> ensureVisible(commentBox));
+      requestAnimationFrame(()=> centerInView(commentBox)); // ช่องข้อมูลติดต่อกลับมาอยู่กลางจอ
       return;
     }
 
@@ -1548,7 +1757,8 @@ document.addEventListener('click', (e)=>{
     if(submitBtn) submitBtn.style.display = 'none';
     if(privacy){
       privacy.classList.add('show');
-      requestAnimationFrame(()=> ensureVisible(privacy.querySelector('.privacy-btn-row')));
+      syncPrivacyGlow(privacy);
+      requestAnimationFrame(()=> scrollButtonsIntoView(privacy.querySelector('.privacy-btn-row')));
     }
     return;
   }
@@ -1559,13 +1769,23 @@ document.addEventListener('click', (e)=>{
     const code = buyBtn.dataset.code;
     const panel = document.getElementById(`expand-${code}`);
     if(panel){
-      const wasOpen = panel.classList.contains('open');
-      document.querySelectorAll('.buy-expand.open').forEach(p=>{
-        if(p !== panel) p.classList.remove('open');
-      });
-      panel.classList.toggle('open', !wasOpen);
       if(panel.classList.contains('open')){
-        requestAnimationFrame(()=> ensureVisible(panel));
+        panel.classList.remove('open'); // พับเก็บกล่อง ไม่ต้องขึ้นคำเตือน
+        const oldCard = panel.closest('.card');
+        if(oldCard) oldCard.classList.remove('glow-run');
+      } else {
+        // ขึ้นกล่องคำเตือนก่อน กด "รับทราบ" แล้วจึงเปิดช่องกรอกจำนวน
+        showBondWarning(()=>{
+          document.querySelectorAll('.buy-expand.open').forEach(p=>{
+            if(p !== panel) p.classList.remove('open');
+          });
+          document.querySelectorAll('.card.glow-run').forEach(c=> c.classList.remove('glow-run'));
+          panel.classList.add('open');
+          const card = panel.closest('.card');
+          if(card) card.classList.add('glow-run'); // ขอบไฟวน จนกว่าจะเริ่มกรอกข้อมูล
+          // การ์ดเลื่อนมาอยู่กลางจอ แต่ปุ่ม "ส่ง" ต้องไม่หลุดขอบล่างถ้าการ์ดสูงเกินจอ
+          requestAnimationFrame(()=> centerInView(card || panel, panel.querySelector('.submit-btn')));
+        });
       }
     }
     return;
@@ -1584,6 +1804,9 @@ document.addEventListener('click', (e)=>{
     const moneyField = document.getElementById(`money-${code}`);
     const unitField = document.getElementById(`unit-${code}`);
     const hasAmount = (moneyField && moneyField.value.trim() !== '') || (unitField && unitField.value.trim() !== '');
+    [moneyField, unitField].forEach(f=>{ if(f) f.classList.toggle('input-error', !hasAmount); });
+    const commentEl = document.getElementById(`comment-${code}`);
+    if(commentEl) commentEl.classList.toggle('input-error', commentEl.value.trim() === '');
     if(!hasAmount){
       if(formNotice){
         formNotice.textContent = 'กรุณากรอกจำนวนเงินหรือจำนวนหน่วย';
@@ -1614,7 +1837,8 @@ document.addEventListener('click', (e)=>{
     }
     if(privacy){
       privacy.classList.add('show');
-      requestAnimationFrame(()=> ensureVisible(privacy.querySelector('.privacy-btn-row')));
+      syncPrivacyGlow(privacy);
+      requestAnimationFrame(()=> scrollButtonsIntoView(privacy.querySelector('.privacy-btn-row')));
     }
     return;
   }
@@ -1665,7 +1889,7 @@ document.addEventListener('click', (e)=>{
         err.textContent = 'กรุณาทำเครื่องหมายยินยอมก่อนกดส่ง';
         err.classList.add('show');
       }
-      requestAnimationFrame(()=> ensureVisible(privacy.querySelector('.privacy-btn-row')));
+      requestAnimationFrame(()=> scrollButtonsIntoView(privacy.querySelector('.privacy-btn-row')));
       return;
     }
     if(err) err.classList.remove('show');
@@ -1903,8 +2127,30 @@ document.addEventListener('blur', (e)=>{
 // Privacy-consent checkbox: "Submit" is visible right away (no need to wait
 // for the checkbox), but clicking it while unchecked shows an inline error
 // instead of sending — checking the box clears that error.
+// ล้างขอบสีแดงเมื่อเริ่มกรอกช่องนั้น (ช่องจำนวนเงิน/หน่วย: กรอกช่องใดช่องหนึ่งก็ล้างทั้งคู่)
+document.addEventListener('input', (e)=>{
+  const t = e.target;
+  if(!t || !t.classList || !t.classList.contains('input-error')) return;
+  if(t.classList.contains('amount-money') || t.classList.contains('amount-unit')){
+    const wrap = t.closest('.amount-fields');
+    if(wrap) wrap.querySelectorAll('.buy-input').forEach(i=> i.classList.remove('input-error'));
+  } else if(t.classList.contains('comment-box')){
+    t.classList.remove('input-error');
+  }
+});
+
+// ขอบไฟวนรอบการ์ดหุ้นกู้ หายเมื่อเริ่มใส่ข้อมูลในการ์ด
+document.addEventListener('input', (e)=>{
+  const t = e.target;
+  if(t && t.matches && t.matches('.buy-expand .buy-input')){
+    const card = t.closest('.card');
+    if(card) card.classList.remove('glow-run');
+  }
+});
+
 document.addEventListener('change', (e)=>{
   if(e.target.classList && e.target.classList.contains('privacy-checkbox')){
+    syncPrivacyGlow(e.target.closest('.privacy-notice')); // ติ๊กแล้วไฟหาย
     const code = e.target.dataset.code;
     if(e.target.checked){
       const err = document.getElementById(`privacyError-${code}`);
