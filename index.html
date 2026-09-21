@@ -184,18 +184,72 @@
   }
   .msel-option:hover{background:#FBF8F1;}
   .msel-option input{flex:none; width:15px; height:15px; accent-color:var(--maroon); cursor:pointer;}
-  .reset-btn{
+  /* แถวปุ่ม: ล้างตัวกรอง (ซ้าย เล็ก สีอ่อน) คู่กับ ค้นหา (ขวา ใหญ่ สีส้มเด่น) */
+  .filter-actions{
     grid-column:1 / -1;
-    background:var(--maroon); color:#fff; border:none;
-    padding:9px; border-radius:9px; font-size:12.5px;
+    display:flex; gap:8px; margin-top:2px;
+  }
+  .reset-btn{
+    flex:1 1 0;
+    background:#fff; color:var(--maroon);
+    border:1.5px solid var(--maroon);
+    padding:9px 8px; border-radius:9px; font-size:12.5px;
     cursor:pointer; font-family:inherit; font-weight:600;
   }
-  .reset-btn:hover{background:#5a2529;}
+  .reset-btn:hover{background:#F7ECD6;}
+  .reset-btn:focus-visible, .search-btn:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
+  .search-btn{
+    flex:1.5 1 0;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    background:linear-gradient(120deg,var(--amber1),var(--amber2));
+    color:#fff; border:1.5px solid transparent;
+    padding:9px 8px; border-radius:9px; font-size:13px;
+    cursor:pointer; font-family:inherit; font-weight:700;
+    box-shadow:0 8px 14px -8px rgba(232,134,42,0.8);
+    transition:transform .12s;
+  }
+  .search-btn:active{transform:scale(0.97);}
+  .search-btn svg{width:15px; height:15px; flex:none;}
+  .count-line{scroll-margin-top:14px;}
+  .count-line.flash b{animation:countFlash .9s ease-out;}
+  @keyframes countFlash{
+    0%{background:#F6D746; box-shadow:0 0 0 4px #F6D746; border-radius:4px;}
+    100%{background:transparent; box-shadow:0 0 0 4px transparent; border-radius:4px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .count-line.flash b{animation:none;}
+  }
 
   .active-filters{
-    display:flex; flex-wrap:wrap; gap:6px;
+    display:flex; flex-direction:column; gap:8px;
     margin:-6px 2px 14px;
   }
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .sort-hint{font-size:11.5px; color:var(--ink-soft); margin:2px 0 0; line-height:1.5;}
+  .sort-item{
+    background:#FBF8F1; border:1px solid var(--line); border-radius:12px;
+    padding:9px 10px;
+  }
+  .sort-item.sorted{border-color:var(--maroon); background:#FDF6E8;}
+  .sort-item-title{
+    font-size:12px; font-weight:700; color:var(--maroon);
+    line-height:1.5; margin-bottom:7px;
+  }
+  .sort-seg{
+    display:grid; grid-template-columns:1fr 1fr;
+    border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff;
+  }
+  .sort-opt{
+    font-family:inherit; font-size:11.5px; font-weight:600; color:var(--brown);
+    background:#fff; border:none; padding:8px 4px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:4px;
+    white-space:nowrap;
+  }
+  .sort-opt + .sort-opt{border-left:1px solid var(--line);}
+  .sort-opt svg{width:12px; height:12px; flex:none;}
+  .sort-opt:hover{background:#F7ECD6;}
+  .sort-opt[aria-pressed="true"]{background:var(--maroon); color:#fff;}
+  .sort-opt:focus-visible{outline:2px solid var(--amber2); outline-offset:-2px;}
   .active-filters:empty{margin:0; display:none;}
   .filter-chip{
     font-size:11px; font-weight:700; color:var(--maroon);
@@ -458,6 +512,8 @@
   }
   .buy-input:focus-visible{outline:2px solid var(--amber2); outline-offset:1px;}
   .buy-input:disabled{background:#F1ECE0; color:var(--ink-soft); cursor:not-allowed;}
+  /* กรอกจำนวนเงินแล้ว → ข้อความพรีฟิลด์ "จำนวนหน่วย" หาย (และกลับกัน) */
+  .buy-input:disabled::placeholder{color:transparent; opacity:0; -webkit-text-fill-color:transparent;}
   .buy-input.input-error{border-color:var(--red); outline:2px solid var(--red); outline-offset:1px;}
   .login-btn{
     width:100%;
@@ -797,7 +853,13 @@
         <option value="par">Par</option>
         <option value="discount">Discount</option>
       </select>
-      <button class="reset-btn" id="resetBtn">ล้างตัวกรองทั้งหมด</button>
+      <div class="filter-actions">
+        <button type="button" class="reset-btn" id="resetBtn">ล้างตัวกรอง</button>
+        <button type="button" class="search-btn" id="searchBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span class="search-label">ค้นหา</span>
+        </button>
+      </div>
     </div>
 
     <div class="active-filters" id="activeFilters"></div>
@@ -960,6 +1022,55 @@ function resetMultiFilters(){
 }
 const searchEl = document.getElementById('fSearch');
 
+// ---------- เรียงลำดับตามตัวกรองที่เลือก (YTM / อายุคงเหลือ / เครดิต / ความเสี่ยง) ----------
+// เมื่อผู้ใช้เลือกตัวกรองหัวข้อใดแล้ว จะมีตัวเลือก "จากมากไปน้อย" / "จากน้อยไปมาก"
+// ของหัวข้อนั้นโผล่ขึ้นมา (กดซ้ำที่ตัวเลือกเดิม = ยกเลิกการเรียง)
+// เรียงได้ทีละ 1 หัวข้อ: หัวข้อที่กดล่าสุดใช้เรียงก่อน (ปุ่มขึ้นสี) ส่วนหัวข้อที่เลือกไว้ก่อนหน้า
+// จะถูกล้างสีปุ่ม แล้วเป็นตัวตัดสินเมื่อค่าเท่ากันตามลำดับเริ่มต้นแทน
+// เครดิต: มาก = อันดับดีกว่า (AAA มากที่สุด ... Unrated น้อยที่สุด)
+const sortConfig = {
+  fYtm:           { val: b=> b.ytm,                          dflt:'desc' },
+  fLife:          { val: b=> lifeNum(b),                     dflt:'asc'  },
+  fRating:        { val: b=> ratingRank(b.ratingLabel),      dflt:'desc' },
+  fRatingCompany: { val: b=> ratingRank(b.ratingCompanyLabel), dflt:'desc' },
+  fRisk:          { val: b=> b.risk,                         dflt:'asc'  },
+};
+// ลำดับตัดสินเมื่อค่าเท่ากัน: YTM → อายุคงเหลือ → เครดิต(ตราสาร) → เครดิต(บริษัท) → ความเสี่ยง
+const defaultSortCascade = ['fYtm','fLife','fRating','fRatingCompany','fRisk'];
+let sortPrefs = {};  // id -> 'asc' | 'desc'
+let sortOrder = [];  // id ที่ผู้ใช้เลือกเรียง เรียงจากกดล่าสุดไปเก่าสุด
+function setSortPref(id, dir){
+  if(sortPrefs[id] === dir){
+    sortPrefs = {};          // กดปุ่มที่ขึ้นสีอยู่ซ้ำ = ยกเลิกการเรียง
+    sortOrder = [];
+  } else {
+    sortPrefs = { [id]: dir }; // หัวข้อใหม่แทนที่ — ปุ่มของหัวข้อก่อนหน้าไม่ขึ้นสีอีก
+    sortOrder = [id];
+  }
+}
+// ถ้าเลิกเลือกตัวกรองหัวข้อนั้นจนไม่เหลือค่า ให้ทิ้งการเรียงของหัวข้อนั้นด้วย
+function pruneSortPrefs(){
+  Object.keys(sortPrefs).forEach(id=>{
+    if(!multiState[id] || multiState[id].length === 0) delete sortPrefs[id];
+  });
+  sortOrder = sortOrder.filter(k=> sortPrefs[k]);
+}
+function buildSortKeys(){
+  const keys = sortOrder.map(id=> ({ id, dir: sortPrefs[id] }));
+  defaultSortCascade.forEach(id=>{
+    if(!sortPrefs[id]) keys.push({ id, dir: sortConfig[id].dflt });
+  });
+  return keys;
+}
+function compareBonds(a, b, keys){
+  for(const { id, dir } of keys){
+    const va = sortConfig[id].val(a), vb = sortConfig[id].val(b);
+    const cmp = va < vb ? -1 : (va > vb ? 1 : 0); // เทียบแบบนี้เพื่อรองรับ PERP (Infinity)
+    if(cmp !== 0) return dir === 'desc' ? -cmp : cmp;
+  }
+  return 0;
+}
+
 // ---------- Cart (ตะกร้าหุ้นกู้ที่สนใจ) ----------
 // Persisted client-side (per browser) with localStorage, keyed by the
 // Supabase row id (b._id) so it survives reloads across days. An item drops
@@ -1064,7 +1175,7 @@ function renderCartCheckout(){
       }).join('')}
     </div>
 
-    <textarea class="buy-input comment-box" id="comment-checkoutGlobal" placeholder="ข้อมูลติดต่อกลับ (ชื่อ เบอร์โทร หรือ อีเมล์)" style="margin-top:14px;"></textarea>
+    <textarea class="buy-input comment-box" id="comment-checkoutGlobal" placeholder="ข้อมูลติดต่อกลับ (ชื่อ เบอร์โทรศัพท์ หรืออีเมล)" style="margin-top:14px;"></textarea>
 
     <div class="min-notice" id="formNotice-checkoutGlobal"></div>
     <button type="button" class="checkout-submit-btn" id="checkoutSubmitBtn">ส่ง</button>
@@ -1113,14 +1224,39 @@ function updateActiveFilterChips(){
     const text = opt ? opt.textContent : el.value;
     return `<span class="filter-chip">${chipFilterLabels[id]}: ${text}</span>`;
   }).filter(Boolean);
-  const multiChips = multiIds.map(id=>{
+  // ตัวกรองแบบเลือกหลายค่า: แสดงเป็นการ์ดพร้อมปุ่มเลือกการเรียงลำดับ
+  const arrowDown = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="6 13 12 19 18 13"></polyline></svg>';
+  const arrowUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg>';
+  const sortItems = multiIds.map(id=>{
     const selected = multiState[id];
     if(selected.length === 0) return '';
     const text = selected.map(v=> multiOptionLabels[id][v]).join(', ');
-    return `<span class="filter-chip">${multiFilterMeta[id]}: ${text}</span>`;
+    const cur = sortPrefs[id] || '';
+    return `
+      <div class="sort-item${cur ? ' sorted' : ''}">
+        <div class="sort-item-title">${multiFilterMeta[id]}: ${text}</div>
+        <div class="sort-seg" role="group" aria-label="เรียงลำดับ ${multiFilterMeta[id]}">
+          <button type="button" class="sort-opt" data-sort-id="${id}" data-sort-dir="desc" aria-pressed="${cur === 'desc'}">${arrowDown}จากมากไปน้อย</button>
+          <button type="button" class="sort-opt" data-sort-id="${id}" data-sort-dir="asc" aria-pressed="${cur === 'asc'}">${arrowUp}จากน้อยไปมาก</button>
+        </div>
+      </div>`;
   }).filter(Boolean);
-  activeFiltersEl.innerHTML = singleChips.concat(multiChips).join('');
+  const hint = 'เรียงลำดับผลลัพธ์ตามตัวกรองที่เลือก (เลือกเรียงได้ครั้งละ 1 หัวข้อ)';
+  activeFiltersEl.innerHTML =
+    (singleChips.length ? `<div class="chip-row">${singleChips.join('')}</div>` : '') +
+    (sortItems.length ? `<div class="sort-hint">${hint}</div>${sortItems.join('')}` : '');
 }
+// กดปุ่ม "จากมากไปน้อย" / "จากน้อยไปมาก" ของตัวกรองแต่ละหัวข้อ
+activeFiltersEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.sort-opt');
+  if(!btn) return;
+  const id = btn.dataset.sortId, dir = btn.dataset.sortDir;
+  setSortPref(id, dir);
+  render();
+  // render() สร้างปุ่มใหม่ — คืนโฟกัสให้ปุ่มเดิม (สำหรับการใช้คีย์บอร์ด)
+  const again = activeFiltersEl.querySelector(`.sort-opt[data-sort-id="${id}"][data-sort-dir="${dir}"]`);
+  if(again) again.focus({ preventScroll:true });
+});
 
 /* ---------- Bond Warehouse -> Bond Screener field mapping ----------
    Field names between the two files don't always match, e.g.:
@@ -1331,6 +1467,7 @@ function featureTag(f){
 }
 
 function render(){
+  pruneSortPrefs();
   const inv = els.fInvestor.value;
   const ratArr = multiState.fRating;
   const ratCoArr = multiState.fRatingCompany;
@@ -1395,14 +1532,10 @@ function render(){
     //   2) อายุคงเหลือน้อยสุดก่อน
     //   3) เครดิต(ตราสาร) AAA → BBB → ต่ำกว่า (Unrated ท้ายสุด)
     //   4) เครดิต(บริษัท) เช่นเดียวกัน
-    filtered = filtered.slice().sort((a,b)=>{
-      if(b.ytm !== a.ytm) return b.ytm - a.ytm;
-      const lifeDiff = lifeNum(a) - lifeNum(b);
-      if(lifeDiff !== 0) return lifeDiff;
-      const instDiff = ratingRank(b.ratingLabel) - ratingRank(a.ratingLabel);
-      if(instDiff !== 0) return instDiff;
-      return ratingRank(b.ratingCompanyLabel) - ratingRank(a.ratingCompanyLabel);
-    });
+    //   ถ้าผู้ใช้เลือกเรียงลำดับตัวกรองหัวข้อใด (จากมากไปน้อย / จากน้อยไปมาก)
+    //   หัวข้อนั้นจะถูกนำมาเรียงก่อน ตามด้วยลำดับเริ่มต้นข้างต้น — ดู buildSortKeys()
+    const sortKeys = buildSortKeys();
+    filtered = filtered.slice().sort((a,b)=> compareBonds(a, b, sortKeys));
   }
   // When no filter is active, BONDS is already ordered highlight-first
   // (see loadBondsFromWarehouse), so we leave that order untouched.
@@ -1498,7 +1631,7 @@ function bondCardHTML(b, instanceCode, opts){
           </div>
         </div>
 
-        <textarea class="buy-input comment-box" id="comment-${instanceCode}" placeholder="ข้อมูลติดต่อกลับ (ชื่อ เบอร์โทร หรือ อีเมล์)"></textarea>
+        <textarea class="buy-input comment-box" id="comment-${instanceCode}" placeholder="ข้อมูลติดต่อกลับ (ชื่อ เบอร์โทรศัพท์ หรืออีเมล)"></textarea>
 
         <div class="min-notice" id="formNotice-${instanceCode}"></div>
         <button type="button" class="submit-btn" data-code="${instanceCode}">ส่ง</button>
@@ -2164,8 +2297,34 @@ if(searchEl) searchEl.addEventListener('input', render);
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   ids.forEach(id=> els[id].value = "");
   resetMultiFilters();
+  sortPrefs = {}; sortOrder = [];
   if(searchEl) searchEl.value = "";
   render();
+});
+
+// ---------- ปุ่ม "ค้นหา" ----------
+// ตัวกรองทำงานทันทีที่เลือกอยู่แล้ว ปุ่มนี้จึงไม่ได้กรองใหม่ — แต่ทำให้ผู้ใช้รู้สึกว่า
+// "ค้นหา" จริง: เลื่อนมาที่จำนวนหุ้นกู้ที่พบทันที พร้อมไฮไลต์ตัวเลขสั้นๆ
+// (ไม่เรียก render() ซ้ำ เพื่อไม่ให้กล่องสนใจซื้อที่ผู้ใช้กำลังกรอกอยู่ถูกล้าง)
+const searchBtnEl = document.getElementById('searchBtn');
+const countLineEl = document.querySelector('.count-line');
+function runSearchButton(){
+  closeAllMselPanels();
+  if(document.activeElement && document.activeElement !== document.body && document.activeElement.blur){
+    document.activeElement.blur(); // เก็บคีย์บอร์ดบนมือถือ
+  }
+  if(!countLineEl) return;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  countLineEl.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' });
+  countLineEl.classList.remove('flash');
+  void countLineEl.offsetWidth; // รีสตาร์ทแอนิเมชัน
+  countLineEl.classList.add('flash');
+  clearTimeout(runSearchButton._t);
+  runSearchButton._t = setTimeout(()=> countLineEl.classList.remove('flash'), 1000);
+}
+if(searchBtnEl) searchBtnEl.addEventListener('click', runSearchButton);
+if(searchEl) searchEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); runSearchButton(); }
 });
 
 // ---------- Cart FAB / overlay wiring ----------
