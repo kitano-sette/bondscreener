@@ -130,6 +130,36 @@
   }
   .search-box .search-icon svg{width:100%; height:100%; display:block;}
 
+  /* ---------- Budget (งบลงทุน) ---------- */
+  .budget-box{margin-bottom:10px;}
+  .budget-row{display:flex; align-items:flex-start; gap:8px;}
+  .budget-col{flex:1 1 0; min-width:0;}
+  .budget-field{position:relative; flex:1 1 0; min-width:0;}
+  .budget-field input{
+    width:100%; min-width:0;
+    font-family:inherit; font-size:12.5px; color:var(--ink);
+    border:1px solid var(--line); border-radius:9px;
+    padding:10px 8px; background:#fff;
+  }
+  .budget-field input::placeholder{color:#A99B91;}
+  .budget-field input:focus-visible{outline:2px solid var(--amber2); outline-offset:1px;}
+  .budget-suffix{
+    display:none;
+    position:absolute; right:9px; top:50%; transform:translateY(-50%);
+    font-size:12px; color:var(--ink-soft); pointer-events:none;
+  }
+  /* มีตัวเลข (ระหว่างกรอก/หลังกรอก) → แสดงหน่วย "บาท" ท้ายช่อง */
+  .budget-field.has-value .budget-suffix{display:block;}
+  .budget-field.has-value input{border-color:var(--maroon); padding-right:34px;}
+  .budget-dash{color:var(--ink-soft); font-weight:700; flex:none; margin-top:11px;}
+  .budget-hint{
+    font-size:11px; color:var(--red); font-weight:600; margin:0 2px 0; line-height:1.4;
+    overflow:hidden; max-height:0; opacity:0;
+    transition:max-height .18s ease, opacity .15s ease, margin .18s ease;
+  }
+  /* ขึ้นข้อความสีแดงเฉพาะตอนกำลังพิมพ์อยู่ในช่องนั้นและยังไม่ผ่านเงื่อนไข */
+  .budget-hint.hint-show{max-height:28px; opacity:1; margin-top:5px;}
+
   /* ---------- Filters ---------- */
   .filters{
     display:grid; grid-template-columns:1fr 1fr; gap:8px;
@@ -137,6 +167,8 @@
     border:1px solid var(--line); border-radius:12px;
     margin-bottom:16px;
   }
+  /* กันไม่ให้ปุ่ม/select ในกล่องตัวกรองดันความกว้างคอลัมน์จนล้นกรอบ */
+  .filters > *{min-width:0;}
   .filters select{
     appearance:none; -webkit-appearance:none;
     font-family:inherit;
@@ -150,6 +182,7 @@
     width:100%;
   }
   .filters select:focus-visible{outline:2px solid var(--amber2); outline-offset:1px;}
+  .filters select.active{border-color:var(--maroon); color:var(--maroon); font-weight:700;}
 
   /* ---------- Multi-select filters (YTM / อายุคงเหลือ / เครดิต / ความเสี่ยง) ---------- */
   .msel{position:relative;}
@@ -224,39 +257,37 @@
     display:flex; flex-direction:column; gap:8px;
     margin:-6px 2px 14px;
   }
-  .chip-row{display:flex; flex-wrap:wrap; gap:6px;}
-  .sort-hint{font-size:11.5px; color:var(--ink-soft); margin:2px 0 0; line-height:1.5;}
-  .sort-item{
+  /* Filter chips: 1 แถว = 2 ตัวกรอง */
+  .chip-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;}
+  .chip-card{
+    min-width:0;
+    display:flex; flex-direction:column; gap:7px;
     background:#FBF8F1; border:1px solid var(--line); border-radius:12px;
-    padding:9px 10px;
+    padding:8px 9px;
   }
-  .sort-item.sorted{border-color:var(--maroon); background:#FDF6E8;}
-  .sort-item-title{
-    font-size:12px; font-weight:700; color:var(--maroon);
-    line-height:1.5; margin-bottom:7px;
+  .chip-card.sorted{border-color:var(--maroon); background:#FDF6E8;}
+  .chip-title{
+    flex:1;
+    font-size:11.5px; font-weight:700; color:var(--maroon);
+    line-height:1.45; overflow-wrap:anywhere;
   }
-  .sort-seg{
-    display:grid; grid-template-columns:1fr 1fr;
-    border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff;
-  }
-  .sort-opt{
-    font-family:inherit; font-size:11.5px; font-weight:600; color:var(--brown);
-    background:#fff; border:none; padding:8px 4px; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:4px;
+  .sort-toggle{
+    font-family:inherit; font-size:11.5px; font-weight:700; color:var(--brown);
+    background:#fff; border:1px solid var(--line); border-radius:8px;
+    padding:7px 8px; cursor:pointer; width:100%;
     white-space:nowrap;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    line-height:1;
   }
-  .sort-opt + .sort-opt{border-left:1px solid var(--line);}
-  .sort-opt svg{width:12px; height:12px; flex:none;}
-  .sort-opt:hover{background:#F7ECD6;}
-  .sort-opt[aria-pressed="true"]{background:var(--maroon); color:#fff;}
-  .sort-opt:focus-visible{outline:2px solid var(--amber2); outline-offset:-2px;}
+  .sort-toggle-text{letter-spacing:0.1px;}
+  .sort-toggle-arrow{
+    font-size:13.5px; font-weight:800; line-height:1;
+  }
+  .sort-toggle:hover{background:#F7ECD6;}
+  .sort-toggle:active{transform:scale(0.98);}
+  .sort-toggle:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
+  .chip-card.sorted .sort-toggle{background:var(--maroon); border-color:var(--maroon); color:#fff;}
   .active-filters:empty{margin:0; display:none;}
-  .filter-chip{
-    font-size:11px; font-weight:700; color:var(--maroon);
-    background:#F7ECD6; border:1px solid var(--line);
-    padding:5px 10px; border-radius:999px;
-    white-space:nowrap;
-  }
 
   .count-line{
     font-size:12.5px; color:var(--ink-soft); margin-bottom:10px; padding:0 2px;
@@ -780,6 +811,26 @@
       <input type="text" id="fSearch" placeholder="ค้นหารหัสหุ้นกู้ หรือชื่อผู้ออก">
     </div>
 
+    <div class="budget-box">
+      <div class="budget-row" role="group" aria-label="งบลงทุน">
+        <div class="budget-col">
+          <div class="budget-field">
+            <input type="text" id="fBudgetMin" inputmode="numeric" autocomplete="off" placeholder="ขั้นต่ำ 100,000 บาท" aria-label="งบลงทุนขั้นต่ำ (บาท)">
+            <span class="budget-suffix" aria-hidden="true">บาท</span>
+          </div>
+          <div class="budget-hint" id="budgetMinHint">ขั้นต่ำ 100,000 บาท</div>
+        </div>
+        <span class="budget-dash" aria-hidden="true">–</span>
+        <div class="budget-col">
+          <div class="budget-field">
+            <input type="text" id="fBudgetMax" inputmode="numeric" autocomplete="off" placeholder="สูงสุด (บาท)" aria-label="งบลงทุนสูงสุด (บาท)">
+            <span class="budget-suffix" aria-hidden="true">บาท</span>
+          </div>
+          <div class="budget-hint" id="budgetMaxHint">สูงสุดต้องไม่น้อยกว่าขั้นต่ำ</div>
+        </div>
+      </div>
+    </div>
+
     <div class="filters">
       <div class="msel" data-msel="fYtm">
         <button type="button" class="msel-btn" id="fYtmBtn">YTM: ทั้งหมด</button>
@@ -980,7 +1031,7 @@ function updateMselButtonLabel(id){
     btn.textContent = `${base}: ${multiOptionLabels[id][selected[0]]}`;
     btn.classList.add('active');
   } else {
-    btn.textContent = `${base} (${selected.length} ที่เลือก)`;
+    btn.textContent = `${base} (${selected.length} เลือก)`;
     btn.classList.add('active');
   }
 }
@@ -1022,11 +1073,94 @@ function resetMultiFilters(){
 }
 const searchEl = document.getElementById('fSearch');
 
-// ---------- เรียงลำดับตามตัวกรองที่เลือก (YTM / อายุคงเหลือ / เครดิต / ความเสี่ยง) ----------
-// เมื่อผู้ใช้เลือกตัวกรองหัวข้อใดแล้ว จะมีตัวเลือก "จากมากไปน้อย" / "จากน้อยไปมาก"
-// ของหัวข้อนั้นโผล่ขึ้นมา (กดซ้ำที่ตัวเลือกเดิม = ยกเลิกการเรียง)
-// เรียงได้ทีละ 1 หัวข้อ: หัวข้อที่กดล่าสุดใช้เรียงก่อน (ปุ่มขึ้นสี) ส่วนหัวข้อที่เลือกไว้ก่อนหน้า
-// จะถูกล้างสีปุ่ม แล้วเป็นตัวตัดสินเมื่อค่าเท่ากันตามลำดับเริ่มต้นแทน
+// ---------- งบลงทุน (ช่วงยอด "ซื้อขั้นต่ำ" ของหุ้นกู้) ----------
+// ช่องขั้นต่ำ/ขั้นสูง กรอกหรือไม่กรอกก็ได้ (ว่าง = ไม่จำกัดด้านนั้น)
+// เทียบกับตัวเลข "ซื้อขั้นต่ำ" ของหุ้นกู้เท่านั้น — ไม่เกี่ยวกับวงเงิน "เสนอขาย"
+const budgetMinEl = document.getElementById('fBudgetMin');
+const budgetMaxEl = document.getElementById('fBudgetMax');
+const budgetMinHintEl = document.getElementById('budgetMinHint');
+const budgetMaxHintEl = document.getElementById('budgetMaxHint');
+function readBudget(){
+  const parse = el => {
+    const raw = el.value.replace(/[^\d]/g, '');
+    return raw === '' ? null : Number(raw);
+  };
+  let min = parse(budgetMinEl);
+  const max = parse(budgetMaxEl);
+  if(min === 0) min = null; // 0 = ไม่จำกัดขั้นต่ำ
+  return { min, max };
+}
+function budgetActive(){
+  const { min, max } = readBudget();
+  return min !== null || max !== null;
+}
+function minPurchaseNum(b){
+  return Number(String(b.minPurchase).replace(/,/g, '')) || 0;
+}
+function budgetChipText(){
+  const { min, max } = readBudget();
+  const f = n => n.toLocaleString('en-US');
+  if(min !== null && max !== null) return `${f(min)} - ${f(max)} บาท`;
+  if(min !== null) return `ตั้งแต่ ${f(min)} บาท`;
+  return `ไม่เกิน ${f(max)} บาท`;
+}
+// คำแนะนำใต้ช่อง: แสดงเป็นสีปกติตอนช่องว่าง, ขึ้นตัวอักษรสีแดงระหว่างกำลังโฟกัส/พิมพ์อยู่ในช่องนั้น
+// แล้วซ่อนไปเมื่อออกจากช่อง (blur) พร้อมมีตัวเลขอยู่แล้ว (กรอกเสร็จ)
+let minFieldFocused = false, maxFieldFocused = false;
+function budgetNum(el){ return Number(el.value.replace(/[^\d]/g, '')) || 0; }
+// ตอนยังไม่ได้แตะช่อง (ว่างเปล่า) ไม่ขึ้นข้อความ — ขึ้นสีแดงเฉพาะตอนพิมพ์อยู่ในช่องนั้น
+// และยังไม่ผ่านเงื่อนไข: ขั้นต่ำ ต้องมากกว่า 100,000 / สูงสุด ต้องมากกว่าหรือเท่ากับขั้นต่ำ (หรือ 100,000 ถ้ายังไม่กรอกขั้นต่ำ)
+function updateBudgetHints(){
+  if(budgetMinHintEl){
+    const n = budgetNum(budgetMinEl);
+    const show = minFieldFocused && budgetMinEl.value !== '' && n <= 100000;
+    budgetMinHintEl.classList.toggle('hint-show', show);
+  }
+  if(budgetMaxHintEl){
+    const n = budgetNum(budgetMaxEl);
+    const floor = Math.max(100000, budgetNum(budgetMinEl));
+    const show = maxFieldFocused && budgetMaxEl.value !== '' && n < floor;
+    budgetMaxHintEl.classList.toggle('hint-show', show);
+  }
+}
+budgetMinEl.addEventListener('focus', ()=>{ minFieldFocused = true; updateBudgetHints(); });
+budgetMaxEl.addEventListener('focus', ()=>{ maxFieldFocused = true; updateBudgetHints(); });
+[budgetMinEl, budgetMaxEl].forEach(el=>{
+  el.addEventListener('input', ()=>{
+    formatNumberInput(el);
+    updateBudgetHints();
+    render();
+  });
+});
+// ช่องขั้นต่ำ: ถ้ากรอกตัวเลขต่ำกว่า 100,000 ให้ปรับเป็น 100,000 อัตโนมัติเมื่อออกจากช่อง
+budgetMinEl.addEventListener('blur', ()=>{
+  const n = Number(budgetMinEl.value.replace(/[^\d]/g, ''));
+  if(budgetMinEl.value !== '' && n > 0 && n < 100000){
+    budgetMinEl.value = '100,000';
+    render();
+  }
+  minFieldFocused = false;
+  updateBudgetHints();
+});
+// ช่องสูงสุด: ถ้ากรอกตัวเลขต่ำกว่า 100,000 หรือต่ำกว่าช่องขั้นต่ำ ให้ปรับเป็น 100,000
+// หรือตัวเลขตามช่องขั้นต่ำ แล้วแต่ค่าไหนมากกว่า (ปรับเมื่อออกจากช่อง)
+budgetMaxEl.addEventListener('blur', ()=>{
+  const n = Number(budgetMaxEl.value.replace(/[^\d]/g, ''));
+  if(budgetMaxEl.value !== '' && n > 0){
+    const minRaw = Number(budgetMinEl.value.replace(/[^\d]/g, '')) || 0;
+    const floor = Math.max(100000, minRaw);
+    if(n < floor){
+      budgetMaxEl.value = floor.toLocaleString('en-US');
+      render();
+    }
+  }
+  maxFieldFocused = false;
+  updateBudgetHints();
+});
+
+// ---------- เรียงลำดับตามตัวกรองที่เลือก (งบลงทุน / YTM / อายุคงเหลือ / เครดิต / ความเสี่ยง) ----------
+// Filter Chip ของแต่ละหัวข้อมีปุ่มเรียงลำดับปุ่มเดียว สลับ "มากไปน้อย↓" / "น้อยไปมาก↑"
+// ค่าเริ่มต้นของปุ่ม (dflt): งบลงทุน/YTM/เครดิต = มากไปน้อย, อายุคงเหลือ/ความเสี่ยง = น้อยไปมาก
 // เครดิต: มาก = อันดับดีกว่า (AAA มากที่สุด ... Unrated น้อยที่สุด)
 const sortConfig = {
   fYtm:           { val: b=> b.ytm,                          dflt:'desc' },
@@ -1034,31 +1168,43 @@ const sortConfig = {
   fRating:        { val: b=> ratingRank(b.ratingLabel),      dflt:'desc' },
   fRatingCompany: { val: b=> ratingRank(b.ratingCompanyLabel), dflt:'desc' },
   fRisk:          { val: b=> b.risk,                         dflt:'asc'  },
+  fBudget:        { val: b=> minPurchaseNum(b),              dflt:'desc' },
 };
-// ลำดับตัดสินเมื่อค่าเท่ากัน: YTM → อายุคงเหลือ → เครดิต(ตราสาร) → เครดิต(บริษัท) → ความเสี่ยง
-const defaultSortCascade = ['fYtm','fLife','fRating','fRatingCompany','fRisk'];
-let sortPrefs = {};  // id -> 'asc' | 'desc'
-let sortOrder = [];  // id ที่ผู้ใช้เลือกเรียง เรียงจากกดล่าสุดไปเก่าสุด
-function setSortPref(id, dir){
-  if(sortPrefs[id] === dir){
-    sortPrefs = {};          // กดปุ่มที่ขึ้นสีอยู่ซ้ำ = ยกเลิกการเรียง
-    sortOrder = [];
-  } else {
-    sortPrefs = { [id]: dir }; // หัวข้อใหม่แทนที่ — ปุ่มของหัวข้อก่อนหน้าไม่ขึ้นสีอีก
-    sortOrder = [id];
-  }
+// ลำดับตัดสินเมื่อค่าเท่ากัน: YTM → อายุคงเหลือ → เครดิต(ตราสาร) → เครดิต(บริษัท) → ความเสี่ยง → งบลงทุน
+const defaultSortCascade = ['fYtm','fLife','fRating','fRatingCompany','fRisk','fBudget'];
+let sortPrefs = {};  // id -> 'asc' | 'desc' (ไม่มีค่า = ใช้ dflt ของหัวข้อนั้น)
+let sortOrder = [];  // id ที่ผู้ใช้กดปุ่มเรียง เรียงจากกดล่าสุดไปเก่าสุด
+function isSortChipActive(id){
+  if(id === 'fBudget') return budgetActive();
+  return !!(multiState[id] && multiState[id].length > 0);
 }
-// ถ้าเลิกเลือกตัวกรองหัวข้อนั้นจนไม่เหลือค่า ให้ทิ้งการเรียงของหัวข้อนั้นด้วย
+function sortDirOf(id){ return sortPrefs[id] || sortConfig[id].dflt; }
+function toggleSortPref(id){
+  sortPrefs[id] = sortDirOf(id) === 'desc' ? 'asc' : 'desc';
+  sortOrder = [id, ...sortOrder.filter(k=> k !== id)]; // หัวข้อที่กดล่าสุดเรียงก่อน
+}
+// ถ้าเลิกใช้ตัวกรองหัวข้อนั้น ให้ทิ้งทิศทางการเรียงของหัวข้อนั้นด้วย (กลับเป็นค่าเริ่มต้น)
 function pruneSortPrefs(){
   Object.keys(sortPrefs).forEach(id=>{
-    if(!multiState[id] || multiState[id].length === 0) delete sortPrefs[id];
+    if(!isSortChipActive(id)) delete sortPrefs[id];
   });
   sortOrder = sortOrder.filter(k=> sortPrefs[k]);
 }
+// ลำดับการเรียง:
+//  1) หัวข้อที่ผู้ใช้กดปุ่มล่าสุด (ถ้ามี)
+//  2) งบลงทุน (ถ้ามีการกรอก) — เรียงตามทิศทางของปุ่มงบลงทุน
+//  3) ถ้าค่าเท่ากัน: YTM → อายุคงเหลือ → เครดิต(ตราสาร) → เครดิต(บริษัท) → ความเสี่ยง → งบลงทุน
+//     (หัวข้อที่เลือกไว้ใช้ทิศทางของปุ่มตัวเอง หัวข้อที่ไม่ได้เลือกใช้ค่าเริ่มต้น)
 function buildSortKeys(){
-  const keys = sortOrder.map(id=> ({ id, dir: sortPrefs[id] }));
+  const keys = [];
+  const seen = new Set();
+  const push = (id, dir)=>{ if(!seen.has(id)){ seen.add(id); keys.push({ id, dir }); } };
+  sortOrder.forEach(id=>{ if(isSortChipActive(id)) push(id, sortDirOf(id)); });
+  if(isSortChipActive('fBudget')) push('fBudget', sortDirOf('fBudget'));
+  defaultSortCascade.forEach(id=>{ if(isSortChipActive(id)) push(id, sortDirOf(id)); });
   defaultSortCascade.forEach(id=>{
-    if(!sortPrefs[id]) keys.push({ id, dir: sortConfig[id].dflt });
+    if(id === 'fBudget') return; // ไม่ได้ใช้งบลงทุน = ไม่นำมาเรียง
+    push(id, sortConfig[id].dflt);
   });
   return keys;
 }
@@ -1209,52 +1355,63 @@ function privacyNoticeHTML(code){
   `;
 }
 
-// หลังเลือกตัวกรองเหล่านี้แล้ว ให้แสดงข้อความหัวข้อกำกับ เช่น "เครดิต(ตราสาร): AAA"
+// หลังเลือกตัวกรองแล้ว ให้แสดงเป็น Filter Chip (แถวละ 2 ตัวกรอง) เช่น "เครดิต(ตราสาร): AAA"
+// ตัวกรองที่เรียงลำดับได้จะมีปุ่มสลับ "มากไปน้อย↓" / "น้อยไปมาก↑" ในการ์ดของตัวเอง
 const chipFilterLabels = {
   fInvestor: 'นักลงทุน',
   fFeature: 'คุณลักษณะ',
   fPrice: 'ราคา',
 };
+// ลำดับการแสดงผลให้ตรงกับลำดับฟิลด์บนหน้าจอ
+const chipOrder = ['fBudget','fYtm','fLife','fRatingCompany','fRating','fRisk'];
+function sortToggleLabel(dir){ return dir === 'asc' ? 'น้อยไปมาก' : 'มากไปน้อย'; }
+function sortToggleArrow(dir){ return dir === 'asc' ? '↑' : '↓'; }
 function updateActiveFilterChips(){
   if(!activeFiltersEl) return;
-  const singleChips = Object.keys(chipFilterLabels).map(id=>{
-    const el = els[id];
-    if(!el || !el.value) return '';
-    const opt = el.options[el.selectedIndex];
-    const text = opt ? opt.textContent : el.value;
-    return `<span class="filter-chip">${chipFilterLabels[id]}: ${text}</span>`;
-  }).filter(Boolean);
-  // ตัวกรองแบบเลือกหลายค่า: แสดงเป็นการ์ดพร้อมปุ่มเลือกการเรียงลำดับ
-  const arrowDown = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="6 13 12 19 18 13"></polyline></svg>';
-  const arrowUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="6 11 12 5 18 11"></polyline></svg>';
-  const sortItems = multiIds.map(id=>{
-    const selected = multiState[id];
-    if(selected.length === 0) return '';
-    const text = selected.map(v=> multiOptionLabels[id][v]).join(', ');
-    const cur = sortPrefs[id] || '';
+  const keys = buildSortKeys();
+  const primaryId = (keys[0] && isSortChipActive(keys[0].id)) ? keys[0].id : null;
+
+  const cards = chipOrder.map(id=>{
+    let title = '';
+    let sortable = false;
+    if(id === 'fBudget'){
+      if(!budgetActive()) return '';
+      title = `งบลงทุน: ${budgetChipText()}`;
+      sortable = true;
+    } else if(multiFilterMeta[id]){
+      const selected = multiState[id];
+      if(selected.length === 0) return '';
+      title = `${multiFilterMeta[id]}: ${selected.map(v=> multiOptionLabels[id][v]).join(', ')}`;
+      sortable = true;
+    } else {
+      const el = els[id];
+      if(!el || !el.value) return '';
+      const opt = el.options[el.selectedIndex];
+      title = `${chipFilterLabels[id]}: ${opt ? opt.textContent : el.value}`;
+    }
+    if(!sortable){
+      return `<div class="chip-card"><div class="chip-title">${title}</div></div>`;
+    }
+    const dir = sortDirOf(id);
+    const nameForAria = title.split(':')[0];
     return `
-      <div class="sort-item${cur ? ' sorted' : ''}">
-        <div class="sort-item-title">${multiFilterMeta[id]}: ${text}</div>
-        <div class="sort-seg" role="group" aria-label="เรียงลำดับ ${multiFilterMeta[id]}">
-          <button type="button" class="sort-opt" data-sort-id="${id}" data-sort-dir="desc" aria-pressed="${cur === 'desc'}">${arrowDown}จากมากไปน้อย</button>
-          <button type="button" class="sort-opt" data-sort-id="${id}" data-sort-dir="asc" aria-pressed="${cur === 'asc'}">${arrowUp}จากน้อยไปมาก</button>
-        </div>
+      <div class="chip-card${id === primaryId ? ' sorted' : ''}">
+        <div class="chip-title">${title}</div>
+        <button type="button" class="sort-toggle" data-sort-id="${id}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
       </div>`;
   }).filter(Boolean);
-  const hint = 'เรียงลำดับผลลัพธ์ตามตัวกรองที่เลือก (เลือกเรียงได้ครั้งละ 1 หัวข้อ)';
-  activeFiltersEl.innerHTML =
-    (singleChips.length ? `<div class="chip-row">${singleChips.join('')}</div>` : '') +
-    (sortItems.length ? `<div class="sort-hint">${hint}</div>${sortItems.join('')}` : '');
+
+  activeFiltersEl.innerHTML = cards.length ? `<div class="chip-grid">${cards.join('')}</div>` : '';
 }
-// กดปุ่ม "จากมากไปน้อย" / "จากน้อยไปมาก" ของตัวกรองแต่ละหัวข้อ
+// กดปุ่มเรียงลำดับใน Filter Chip = สลับ มากไปน้อย / น้อยไปมาก
 activeFiltersEl.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.sort-opt');
+  const btn = e.target.closest('.sort-toggle');
   if(!btn) return;
-  const id = btn.dataset.sortId, dir = btn.dataset.sortDir;
-  setSortPref(id, dir);
+  const id = btn.dataset.sortId;
+  toggleSortPref(id);
   render();
   // render() สร้างปุ่มใหม่ — คืนโฟกัสให้ปุ่มเดิม (สำหรับการใช้คีย์บอร์ด)
-  const again = activeFiltersEl.querySelector(`.sort-opt[data-sort-id="${id}"][data-sort-dir="${dir}"]`);
+  const again = activeFiltersEl.querySelector(`.sort-toggle[data-sort-id="${id}"]`);
   if(again) again.focus({ preventScroll:true });
 });
 
@@ -1476,12 +1633,19 @@ function render(){
   const ytmArr = multiState.fYtm;
   const lifeArr = multiState.fLife;
   const price = els.fPrice.value;
+  // ราคา / คุณลักษณะ / นักลงทุน: ไม่ขึ้นใน Filter Chip แต่ถ้าถูกเลือก ให้ตัวกล่องขึ้นสีแดงเข้ม (เหมือนตัวกรองอื่น)
+  ids.forEach(id=> els[id].classList.toggle('active', !!els[id].value));
   const searchTerm = (searchEl && searchEl.value || '').trim().toLowerCase();
+  const budget = readBudget();
+  const hasBudget = budget.min !== null || budget.max !== null;
+  // แสดงหน่วย "บาท" ท้ายช่องทันทีที่มีตัวเลข (รวมกรณีพิมพ์ 0)
+  budgetMinEl.parentElement.classList.toggle('has-value', budgetMinEl.value !== '');
+  budgetMaxEl.parentElement.classList.toggle('has-value', budgetMaxEl.value !== '');
 
   // Filters (dropdowns/multi-selects) that determine whether we keep the
   // "highlight first" order or instead order results by the criteria the
   // user filtered on.
-  const filtersActive = !!(inv || ratArr.length || ratCoArr.length || riskArr.length || feat || ytmArr.length || lifeArr.length || price || searchTerm);
+  const filtersActive = !!(inv || ratArr.length || ratCoArr.length || riskArr.length || feat || ytmArr.length || lifeArr.length || price || searchTerm || hasBudget);
 
   // ตรวจสอบว่า rating ของ bond ตรงกับ "ค่าตัวกรองหนึ่งค่า" หรือไม่ (ใช้ร่วมกันทั้ง
   // เครดิต(ตราสาร) และเครดิต(บริษัท))
@@ -1520,6 +1684,13 @@ function render(){
     if(ytmArr.length && !ytmArr.some(range=> ytmMatch(range, b.ytm))) return false;
     if(lifeArr.length && !lifeArr.some(range=> lifeMatch(range, lifeNum(b)))) return false;
     if(price && priceCategory(b)!==price) return false;
+
+    // งบลงทุน: เทียบกับ "ซื้อขั้นต่ำ" ของหุ้นกู้ (รวมค่าขอบ) — ไม่สนวงเงิน "เสนอขาย"
+    if(hasBudget){
+      const minBuy = minPurchaseNum(b);
+      if(budget.min !== null && minBuy < budget.min) return false;
+      if(budget.max !== null && minBuy > budget.max) return false;
+    }
     if(searchTerm && !(String(b.code).toLowerCase().includes(searchTerm) || String(b.issuer).toLowerCase().includes(searchTerm))) return false;
     return true;
   });
@@ -2298,6 +2469,7 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   ids.forEach(id=> els[id].value = "");
   resetMultiFilters();
   sortPrefs = {}; sortOrder = [];
+  budgetMinEl.value = ""; budgetMaxEl.value = ""; updateBudgetHints();
   if(searchEl) searchEl.value = "";
   render();
 });
@@ -2323,8 +2495,10 @@ function runSearchButton(){
   runSearchButton._t = setTimeout(()=> countLineEl.classList.remove('flash'), 1000);
 }
 if(searchBtnEl) searchBtnEl.addEventListener('click', runSearchButton);
-if(searchEl) searchEl.addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter'){ e.preventDefault(); runSearchButton(); }
+[searchEl, budgetMinEl, budgetMaxEl].forEach(el=>{
+  if(el) el.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); runSearchButton(); }
+  });
 });
 
 // ---------- Cart FAB / overlay wiring ----------
