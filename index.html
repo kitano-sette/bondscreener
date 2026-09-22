@@ -278,15 +278,27 @@
     white-space:nowrap;
     display:flex; align-items:center; justify-content:center; gap:6px;
     line-height:1;
+    transition:filter .12s ease;
   }
   .sort-toggle-text{letter-spacing:0.1px;}
   .sort-toggle-arrow{
     font-size:13.5px; font-weight:800; line-height:1;
   }
-  .sort-toggle:hover{background:#F7ECD6;}
+  /* สีปุ่มไล่เฉดตามความหมาย: "มากไปน้อย" เข้ม(ซ้าย)→อ่อน(ขวา), "น้อยไปมาก" อ่อน(ซ้าย)→เข้ม(ขวา) */
+  .sort-toggle.dir-desc{
+    background:linear-gradient(90deg, rgba(110,46,50,0.20) 0%, rgba(110,46,50,0.03) 100%);
+    border-color:var(--line);
+  }
+  .sort-toggle.dir-asc{
+    background:linear-gradient(90deg, rgba(110,46,50,0.03) 0%, rgba(110,46,50,0.20) 100%);
+    border-color:var(--line);
+  }
+  .sort-toggle:hover{filter:brightness(0.97);}
   .sort-toggle:active{transform:scale(0.98);}
   .sort-toggle:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
-  .chip-card.sorted .sort-toggle{background:var(--maroon); border-color:var(--maroon); color:#fff;}
+  .chip-card.sorted .sort-toggle{color:#fff; border-color:var(--maroon);}
+  .chip-card.sorted .sort-toggle.dir-desc{background:linear-gradient(90deg, var(--maroon) 0%, #AD6266 100%);}
+  .chip-card.sorted .sort-toggle.dir-asc{background:linear-gradient(90deg, #AD6266 0%, var(--maroon) 100%);}
   .active-filters:empty{margin:0; display:none;}
 
   .count-line{
@@ -1124,7 +1136,7 @@ function budgetNum(el){ return Number(el.value.replace(/[^\d]/g, '')) || 0; }
 function updateBudgetHints(){
   if(budgetMinHintEl){
     const n = budgetNum(budgetMinEl);
-    const show = minFieldFocused && budgetMinEl.value !== '' && n <= 100000;
+    const show = minFieldFocused && budgetMinEl.value !== '' && n < 100000;
     budgetMinHintEl.classList.toggle('hint-show', show);
   }
   if(budgetMaxHintEl){
@@ -1136,12 +1148,17 @@ function updateBudgetHints(){
 }
 budgetMinEl.addEventListener('focus', ()=>{ minFieldFocused = true; updateBudgetHints(); });
 budgetMaxEl.addEventListener('focus', ()=>{ maxFieldFocused = true; updateBudgetHints(); });
-[budgetMinEl, budgetMaxEl].forEach(el=>{
-  el.addEventListener('input', ()=>{
-    formatNumberInput(el);   // ใส่ลูกน้ำในตัวเลข — ต้องเห็นผลทันที ไม่หน่วง
-    updateBudgetHints();     // ข้อความเตือนสีแดง — ต้องเห็นผลทันที ไม่หน่วง
-    debouncedRender();       // กรองรายการ/สร้างการ์ดใหม่ทั้งหมด — งานหนัก ปล่อยให้หน่วงเล็กน้อยได้
-  });
+// ช่องขั้นต่ำ: ระหว่างพิมพ์ยังไม่ต้องกรองหุ้นเลย — ใส่ลูกน้ำ/ข้อความเตือนให้เห็นทันที
+// แต่รอจนออกจากช่อง (blur) ค่อยกรองรายการหุ้นกู้ใหม่ทีเดียว (ดู blur handler ด้านล่าง)
+budgetMinEl.addEventListener('input', ()=>{
+  formatNumberInput(budgetMinEl);
+  updateBudgetHints();
+});
+// ช่องสูงสุด: กรองแบบหน่วงเวลาเล็กน้อยระหว่างพิมพ์ (debounce) เหมือนเดิม
+budgetMaxEl.addEventListener('input', ()=>{
+  formatNumberInput(budgetMaxEl);
+  updateBudgetHints();
+  debouncedRender();
 });
 // ช่องขั้นต่ำ: ถ้ากรอกตัวเลขต่ำกว่า 100,000 ให้ปรับเป็น 100,000 อัตโนมัติเมื่อออกจากช่อง
 budgetMinEl.addEventListener('blur', ()=>{
@@ -1408,7 +1425,7 @@ function updateActiveFilterChips(){
     return `
       <div class="chip-card${id === primaryId ? ' sorted' : ''}">
         <div class="chip-title">${title}</div>
-        <button type="button" class="sort-toggle" data-sort-id="${id}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
+        <button type="button" class="sort-toggle dir-${dir}" data-sort-id="${id}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
       </div>`;
   }).filter(Boolean);
 
