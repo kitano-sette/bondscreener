@@ -2363,7 +2363,12 @@ function openMailtoFallback(entries, comment){
 // Format a numeric text input with thousands separators as the user types.
 // Returns the raw (unformatted) digit string.
 function formatNumberInput(el){
-  const cursorFromEnd = el.value.length - el.selectionEnd;
+  // เดิม: จำ "ระยะห่างจากท้ายสตริง" ไว้แล้วค่อยวางเคอร์เซอร์กลับตามระยะนั้น — วิธีนี้พังเฉพาะตอนพิมพ์/ลบ
+  // ใกล้ตัวเลขหลักแรกๆ (หลักที่ 1-2) เพราะตอนนั้นจำนวนคอมมาคั่นหลักพันจะเปลี่ยน (เช่น "234" ไม่มีคอมมา
+  // พอพิมพ์เพิ่มเป็น "1,234" จะมีคอมมาใหม่โผล่ขึ้นมา) ทำให้เคอร์เซอร์เพี้ยนไปอยู่หลังคอมมาที่เพิ่งเกิดขึ้นใหม่
+  // แก้ด้วยการนับ "จำนวนตัวเลข (ไม่รวมคอมมา) ที่อยู่ก่อนเคอร์เซอร์" แทน แล้วหาตำแหน่งในสตริงใหม่ที่มี
+  // จำนวนตัวเลขก่อนหน้าเท่ากัน วิธีนี้ทำให้เคอร์เซอร์เกาะติดตัวเลขที่พิมพ์/ลบไปเสมอ ไม่ว่าจะมีคอมมาใหม่เกิดขึ้นหรือไม่
+  const digitsBeforeCursor = el.value.slice(0, el.selectionStart).replace(/[^\d]/g, '').length;
   let raw = el.value.replace(/[^\d]/g, '');
   raw = raw.replace(/^0+(?=\d)/, '');
   if(raw === ''){
@@ -2371,7 +2376,11 @@ function formatNumberInput(el){
     return '';
   }
   el.value = Number(raw).toLocaleString('en-US');
-  const pos = Math.max(0, el.value.length - cursorFromEnd);
+  let pos = 0, digitsSeen = 0;
+  while(pos < el.value.length && digitsSeen < digitsBeforeCursor){
+    if(/\d/.test(el.value[pos])) digitsSeen++;
+    pos++;
+  }
   el.setSelectionRange(pos, pos);
   return raw;
 }
