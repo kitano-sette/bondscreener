@@ -1073,6 +1073,17 @@ function resetMultiFilters(){
 }
 const searchEl = document.getElementById('fSearch');
 
+// เวลาพิมพ์ในช่องค้นหา/งบลงทุน การกรองผลลัพธ์ใหม่ทั้งหมด (สร้างการ์ดทุกใบใหม่) ทำงานหนักพอสมควร
+// ถ้าเรียก render() ทุกตัวอักษรที่พิมพ์จะรู้สึกหน่วง จึงหน่วงเวลาการกรอง/สร้างการ์ดใหม่ไว้เล็กน้อย (debounce)
+// ส่วนสิ่งที่ต้องเห็นผลทันที (ใส่ลูกน้ำในตัวเลข, ข้อความเตือนสีแดง) ยังคงทำงานทันทีทุกครั้งที่พิมพ์
+function debounce(fn, wait){
+  let t;
+  const debounced = (...args)=>{ clearTimeout(t); t = setTimeout(()=> fn(...args), wait); };
+  debounced.flush = (...args)=>{ clearTimeout(t); fn(...args); };
+  return debounced;
+}
+const debouncedRender = debounce(()=> render(), 200);
+
 // ---------- งบลงทุน (ช่วงยอด "ซื้อขั้นต่ำ" ของหุ้นกู้) ----------
 // ช่องขั้นต่ำ/ขั้นสูง กรอกหรือไม่กรอกก็ได้ (ว่าง = ไม่จำกัดด้านนั้น)
 // เทียบกับตัวเลข "ซื้อขั้นต่ำ" ของหุ้นกู้เท่านั้น — ไม่เกี่ยวกับวงเงิน "เสนอขาย"
@@ -1127,9 +1138,9 @@ budgetMinEl.addEventListener('focus', ()=>{ minFieldFocused = true; updateBudget
 budgetMaxEl.addEventListener('focus', ()=>{ maxFieldFocused = true; updateBudgetHints(); });
 [budgetMinEl, budgetMaxEl].forEach(el=>{
   el.addEventListener('input', ()=>{
-    formatNumberInput(el);
-    updateBudgetHints();
-    render();
+    formatNumberInput(el);   // ใส่ลูกน้ำในตัวเลข — ต้องเห็นผลทันที ไม่หน่วง
+    updateBudgetHints();     // ข้อความเตือนสีแดง — ต้องเห็นผลทันที ไม่หน่วง
+    debouncedRender();       // กรองรายการ/สร้างการ์ดใหม่ทั้งหมด — งานหนัก ปล่อยให้หน่วงเล็กน้อยได้
   });
 });
 // ช่องขั้นต่ำ: ถ้ากรอกตัวเลขต่ำกว่า 100,000 ให้ปรับเป็น 100,000 อัตโนมัติเมื่อออกจากช่อง
@@ -1137,10 +1148,10 @@ budgetMinEl.addEventListener('blur', ()=>{
   const n = Number(budgetMinEl.value.replace(/[^\d]/g, ''));
   if(budgetMinEl.value !== '' && n > 0 && n < 100000){
     budgetMinEl.value = '100,000';
-    render();
   }
   minFieldFocused = false;
   updateBudgetHints();
+  debouncedRender.flush(); // ออกจากช่องแล้ว ให้แสดงผลล่าสุดทันที ไม่ต้องรอหน่วงเวลา
 });
 // ช่องสูงสุด: ถ้ากรอกตัวเลขต่ำกว่า 100,000 หรือต่ำกว่าช่องขั้นต่ำ ให้ปรับเป็น 100,000
 // หรือตัวเลขตามช่องขั้นต่ำ แล้วแต่ค่าไหนมากกว่า (ปรับเมื่อออกจากช่อง)
@@ -1151,11 +1162,11 @@ budgetMaxEl.addEventListener('blur', ()=>{
     const floor = Math.max(100000, minRaw);
     if(n < floor){
       budgetMaxEl.value = floor.toLocaleString('en-US');
-      render();
     }
   }
   maxFieldFocused = false;
   updateBudgetHints();
+  debouncedRender.flush(); // ออกจากช่องแล้ว ให้แสดงผลล่าสุดทันที ไม่ต้องรอหน่วงเวลา
 });
 
 // ---------- เรียงลำดับตามตัวกรองที่เลือก (งบลงทุน / YTM / อายุคงเหลือ / เครดิต / ความเสี่ยง) ----------
@@ -2464,7 +2475,7 @@ document.addEventListener('change', (e)=>{
 });
 
 ids.forEach(id=> els[id].addEventListener('change', render));
-if(searchEl) searchEl.addEventListener('input', render);
+if(searchEl) searchEl.addEventListener('input', debouncedRender);
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   ids.forEach(id=> els[id].value = "");
   resetMultiFilters();
@@ -2485,6 +2496,7 @@ function runSearchButton(){
   if(document.activeElement && document.activeElement !== document.body && document.activeElement.blur){
     document.activeElement.blur(); // เก็บคีย์บอร์ดบนมือถือ
   }
+  debouncedRender.flush(); // กดค้นหาแล้วต้องเห็นผลทันที ไม่ต้องรอหน่วงเวลา
   if(!countLineEl) return;
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   countLineEl.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'start' });
