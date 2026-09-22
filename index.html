@@ -278,27 +278,15 @@
     white-space:nowrap;
     display:flex; align-items:center; justify-content:center; gap:6px;
     line-height:1;
-    transition:filter .12s ease;
   }
   .sort-toggle-text{letter-spacing:0.1px;}
   .sort-toggle-arrow{
     font-size:13.5px; font-weight:800; line-height:1;
   }
-  /* สีปุ่มไล่เฉดตามความหมาย: "มากไปน้อย" เข้ม(ซ้าย)→อ่อน(ขวา), "น้อยไปมาก" อ่อน(ซ้าย)→เข้ม(ขวา) */
-  .sort-toggle.dir-desc{
-    background:linear-gradient(90deg, rgba(110,46,50,0.20) 0%, rgba(110,46,50,0.03) 100%);
-    border-color:var(--line);
-  }
-  .sort-toggle.dir-asc{
-    background:linear-gradient(90deg, rgba(110,46,50,0.03) 0%, rgba(110,46,50,0.20) 100%);
-    border-color:var(--line);
-  }
-  .sort-toggle:hover{filter:brightness(0.97);}
+  .sort-toggle:hover{background:#F7ECD6;}
   .sort-toggle:active{transform:scale(0.98);}
   .sort-toggle:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
-  .chip-card.sorted .sort-toggle{color:#fff; border-color:var(--maroon);}
-  .chip-card.sorted .sort-toggle.dir-desc{background:linear-gradient(90deg, var(--maroon) 0%, #AD6266 100%);}
-  .chip-card.sorted .sort-toggle.dir-asc{background:linear-gradient(90deg, #AD6266 0%, var(--maroon) 100%);}
+  .chip-card.sorted .sort-toggle{background:var(--maroon); border-color:var(--maroon); color:#fff;}
   .active-filters:empty{margin:0; display:none;}
 
   .count-line{
@@ -1134,12 +1122,9 @@ function budgetNum(el){ return Number(el.value.replace(/[^\d]/g, '')) || 0; }
 // ตอนยังไม่ได้แตะช่อง (ว่างเปล่า) ไม่ขึ้นข้อความ — ขึ้นสีแดงเฉพาะตอนพิมพ์อยู่ในช่องนั้น
 // และยังไม่ผ่านเงื่อนไข: ขั้นต่ำ ต้องมากกว่า 100,000 / สูงสุด ต้องมากกว่าหรือเท่ากับขั้นต่ำ (หรือ 100,000 ถ้ายังไม่กรอกขั้นต่ำ)
 function updateBudgetHints(){
-  // แสดงหน่วย "บาท" ท้ายช่องทันทีที่มีตัวเลข — งานเบา ทำทุกครั้งที่พิมพ์ได้โดยไม่หน่วง
-  budgetMinEl.parentElement.classList.toggle('has-value', budgetMinEl.value !== '');
-  budgetMaxEl.parentElement.classList.toggle('has-value', budgetMaxEl.value !== '');
   if(budgetMinHintEl){
     const n = budgetNum(budgetMinEl);
-    const show = minFieldFocused && budgetMinEl.value !== '' && n < 100000;
+    const show = minFieldFocused && budgetMinEl.value !== '' && n <= 100000;
     budgetMinHintEl.classList.toggle('hint-show', show);
   }
   if(budgetMaxHintEl){
@@ -1151,29 +1136,13 @@ function updateBudgetHints(){
 }
 budgetMinEl.addEventListener('focus', ()=>{ minFieldFocused = true; updateBudgetHints(); });
 budgetMaxEl.addEventListener('focus', ()=>{ maxFieldFocused = true; updateBudgetHints(); });
-// พิมพ์เร็วๆ บนคีย์บอร์ด PC (หรือกดค้าง Backspace ลบรัว) ทำให้ event "input" ยิงถี่กว่าเฟรมของจอมาก
-// (บนมือถือมักไม่ถี่เท่านี้) ถ้าประมวลผล (ใส่ลูกน้ำ/จัดตำแหน่งเคอร์เซอร์) ทุก event จะสะสมงานจนหน่วง/ค้างได้
-// จึงรวบงานส่วนนี้ให้ทำแค่ "ครั้งเดียวต่อเฟรมจอ" (requestAnimationFrame) แทนการทำทุก event ที่ยิงเข้ามา
-function rafBatch(fn){
-  let scheduled = false;
-  return (...args)=>{
-    if(scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(()=>{ scheduled = false; fn(...args); });
-  };
-}
-// ช่องขั้นต่ำ: ระหว่างพิมพ์ยังไม่ต้องกรองหุ้นเลย — ใส่ลูกน้ำ/ข้อความเตือนให้เห็นทันที (แต่รวบเป็นครั้งเดียวต่อเฟรม)
-// แต่รอจนออกจากช่อง (blur) ค่อยกรองรายการหุ้นกู้ใหม่ทีเดียว (ดู blur handler ด้านล่าง)
-budgetMinEl.addEventListener('input', rafBatch(()=>{
-  formatNumberInput(budgetMinEl);
-  updateBudgetHints();
-}));
-// ช่องสูงสุด: กรองแบบหน่วงเวลาเล็กน้อยระหว่างพิมพ์ (debounce) เหมือนเดิม
-budgetMaxEl.addEventListener('input', rafBatch(()=>{
-  formatNumberInput(budgetMaxEl);
-  updateBudgetHints();
-  debouncedRender();
-}));
+[budgetMinEl, budgetMaxEl].forEach(el=>{
+  el.addEventListener('input', ()=>{
+    formatNumberInput(el);   // ใส่ลูกน้ำในตัวเลข — ต้องเห็นผลทันที ไม่หน่วง
+    updateBudgetHints();     // ข้อความเตือนสีแดง — ต้องเห็นผลทันที ไม่หน่วง
+    debouncedRender();       // กรองรายการ/สร้างการ์ดใหม่ทั้งหมด — งานหนัก ปล่อยให้หน่วงเล็กน้อยได้
+  });
+});
 // ช่องขั้นต่ำ: ถ้ากรอกตัวเลขต่ำกว่า 100,000 ให้ปรับเป็น 100,000 อัตโนมัติเมื่อออกจากช่อง
 budgetMinEl.addEventListener('blur', ()=>{
   const n = Number(budgetMinEl.value.replace(/[^\d]/g, ''));
@@ -1439,7 +1408,7 @@ function updateActiveFilterChips(){
     return `
       <div class="chip-card${id === primaryId ? ' sorted' : ''}">
         <div class="chip-title">${title}</div>
-        <button type="button" class="sort-toggle dir-${dir}" data-sort-id="${id}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
+        <button type="button" class="sort-toggle" data-sort-id="${id}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
       </div>`;
   }).filter(Boolean);
 
@@ -1680,6 +1649,9 @@ function render(){
   const searchTerm = (searchEl && searchEl.value || '').trim().toLowerCase();
   const budget = readBudget();
   const hasBudget = budget.min !== null || budget.max !== null;
+  // แสดงหน่วย "บาท" ท้ายช่องทันทีที่มีตัวเลข (รวมกรณีพิมพ์ 0)
+  budgetMinEl.parentElement.classList.toggle('has-value', budgetMinEl.value !== '');
+  budgetMaxEl.parentElement.classList.toggle('has-value', budgetMaxEl.value !== '');
 
   // Filters (dropdowns/multi-selects) that determine whether we keep the
   // "highlight first" order or instead order results by the criteria the
@@ -2363,12 +2335,7 @@ function openMailtoFallback(entries, comment){
 // Format a numeric text input with thousands separators as the user types.
 // Returns the raw (unformatted) digit string.
 function formatNumberInput(el){
-  // เดิม: จำ "ระยะห่างจากท้ายสตริง" ไว้แล้วค่อยวางเคอร์เซอร์กลับตามระยะนั้น — วิธีนี้พังเฉพาะตอนพิมพ์/ลบ
-  // ใกล้ตัวเลขหลักแรกๆ (หลักที่ 1-2) เพราะตอนนั้นจำนวนคอมมาคั่นหลักพันจะเปลี่ยน (เช่น "234" ไม่มีคอมมา
-  // พอพิมพ์เพิ่มเป็น "1,234" จะมีคอมมาใหม่โผล่ขึ้นมา) ทำให้เคอร์เซอร์เพี้ยนไปอยู่หลังคอมมาที่เพิ่งเกิดขึ้นใหม่
-  // แก้ด้วยการนับ "จำนวนตัวเลข (ไม่รวมคอมมา) ที่อยู่ก่อนเคอร์เซอร์" แทน แล้วหาตำแหน่งในสตริงใหม่ที่มี
-  // จำนวนตัวเลขก่อนหน้าเท่ากัน วิธีนี้ทำให้เคอร์เซอร์เกาะติดตัวเลขที่พิมพ์/ลบไปเสมอ ไม่ว่าจะมีคอมมาใหม่เกิดขึ้นหรือไม่
-  const digitsBeforeCursor = el.value.slice(0, el.selectionStart).replace(/[^\d]/g, '').length;
+  const cursorFromEnd = el.value.length - el.selectionEnd;
   let raw = el.value.replace(/[^\d]/g, '');
   raw = raw.replace(/^0+(?=\d)/, '');
   if(raw === ''){
@@ -2376,11 +2343,7 @@ function formatNumberInput(el){
     return '';
   }
   el.value = Number(raw).toLocaleString('en-US');
-  let pos = 0, digitsSeen = 0;
-  while(pos < el.value.length && digitsSeen < digitsBeforeCursor){
-    if(/\d/.test(el.value[pos])) digitsSeen++;
-    pos++;
-  }
+  const pos = Math.max(0, el.value.length - cursorFromEnd);
   el.setSelectionRange(pos, pos);
   return raw;
 }
