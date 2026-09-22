@@ -1151,18 +1151,29 @@ function updateBudgetHints(){
 }
 budgetMinEl.addEventListener('focus', ()=>{ minFieldFocused = true; updateBudgetHints(); });
 budgetMaxEl.addEventListener('focus', ()=>{ maxFieldFocused = true; updateBudgetHints(); });
-// ช่องขั้นต่ำ: ระหว่างพิมพ์ยังไม่ต้องกรองหุ้นเลย — ใส่ลูกน้ำ/ข้อความเตือนให้เห็นทันที
+// พิมพ์เร็วๆ บนคีย์บอร์ด PC (หรือกดค้าง Backspace ลบรัว) ทำให้ event "input" ยิงถี่กว่าเฟรมของจอมาก
+// (บนมือถือมักไม่ถี่เท่านี้) ถ้าประมวลผล (ใส่ลูกน้ำ/จัดตำแหน่งเคอร์เซอร์) ทุก event จะสะสมงานจนหน่วง/ค้างได้
+// จึงรวบงานส่วนนี้ให้ทำแค่ "ครั้งเดียวต่อเฟรมจอ" (requestAnimationFrame) แทนการทำทุก event ที่ยิงเข้ามา
+function rafBatch(fn){
+  let scheduled = false;
+  return (...args)=>{
+    if(scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(()=>{ scheduled = false; fn(...args); });
+  };
+}
+// ช่องขั้นต่ำ: ระหว่างพิมพ์ยังไม่ต้องกรองหุ้นเลย — ใส่ลูกน้ำ/ข้อความเตือนให้เห็นทันที (แต่รวบเป็นครั้งเดียวต่อเฟรม)
 // แต่รอจนออกจากช่อง (blur) ค่อยกรองรายการหุ้นกู้ใหม่ทีเดียว (ดู blur handler ด้านล่าง)
-budgetMinEl.addEventListener('input', ()=>{
+budgetMinEl.addEventListener('input', rafBatch(()=>{
   formatNumberInput(budgetMinEl);
   updateBudgetHints();
-});
+}));
 // ช่องสูงสุด: กรองแบบหน่วงเวลาเล็กน้อยระหว่างพิมพ์ (debounce) เหมือนเดิม
-budgetMaxEl.addEventListener('input', ()=>{
+budgetMaxEl.addEventListener('input', rafBatch(()=>{
   formatNumberInput(budgetMaxEl);
   updateBudgetHints();
   debouncedRender();
-});
+}));
 // ช่องขั้นต่ำ: ถ้ากรอกตัวเลขต่ำกว่า 100,000 ให้ปรับเป็น 100,000 อัตโนมัติเมื่อออกจากช่อง
 budgetMinEl.addEventListener('blur', ()=>{
   const n = Number(budgetMinEl.value.replace(/[^\d]/g, ''));
