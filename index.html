@@ -1124,7 +1124,7 @@ function budgetNum(el){ return Number(el.value.replace(/[^\d]/g, '')) || 0; }
 function updateBudgetHints(){
   if(budgetMinHintEl){
     const n = budgetNum(budgetMinEl);
-    const show = minFieldFocused && budgetMinEl.value !== '' && n <= 999999.99 && n < 100000;
+    const show = minFieldFocused && budgetMinEl.value !== '' && n < 100000;
     budgetMinHintEl.classList.toggle('hint-show', show);
   }
   if(budgetMaxHintEl){
