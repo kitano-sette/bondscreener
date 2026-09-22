@@ -1134,6 +1134,9 @@ function budgetNum(el){ return Number(el.value.replace(/[^\d]/g, '')) || 0; }
 // ตอนยังไม่ได้แตะช่อง (ว่างเปล่า) ไม่ขึ้นข้อความ — ขึ้นสีแดงเฉพาะตอนพิมพ์อยู่ในช่องนั้น
 // และยังไม่ผ่านเงื่อนไข: ขั้นต่ำ ต้องมากกว่า 100,000 / สูงสุด ต้องมากกว่าหรือเท่ากับขั้นต่ำ (หรือ 100,000 ถ้ายังไม่กรอกขั้นต่ำ)
 function updateBudgetHints(){
+  // แสดงหน่วย "บาท" ท้ายช่องทันทีที่มีตัวเลข — งานเบา ทำทุกครั้งที่พิมพ์ได้โดยไม่หน่วง
+  budgetMinEl.parentElement.classList.toggle('has-value', budgetMinEl.value !== '');
+  budgetMaxEl.parentElement.classList.toggle('has-value', budgetMaxEl.value !== '');
   if(budgetMinHintEl){
     const n = budgetNum(budgetMinEl);
     const show = minFieldFocused && budgetMinEl.value !== '' && n < 100000;
@@ -1666,9 +1669,6 @@ function render(){
   const searchTerm = (searchEl && searchEl.value || '').trim().toLowerCase();
   const budget = readBudget();
   const hasBudget = budget.min !== null || budget.max !== null;
-  // แสดงหน่วย "บาท" ท้ายช่องทันทีที่มีตัวเลข (รวมกรณีพิมพ์ 0)
-  budgetMinEl.parentElement.classList.toggle('has-value', budgetMinEl.value !== '');
-  budgetMaxEl.parentElement.classList.toggle('has-value', budgetMaxEl.value !== '');
 
   // Filters (dropdowns/multi-selects) that determine whether we keep the
   // "highlight first" order or instead order results by the criteria the
