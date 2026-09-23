@@ -272,21 +272,31 @@
     line-height:1.45; overflow-wrap:anywhere;
   }
   .sort-toggle{
-    font-family:inherit; font-size:11.5px; font-weight:700; color:var(--brown);
-    background:#fff; border:1px solid var(--line); border-radius:8px;
+    font-family:inherit; font-size:11.5px; font-weight:700; color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,0.35);
+    background:var(--maroon); border:1px solid var(--line); border-radius:8px;
     padding:7px 8px; cursor:pointer; width:100%;
     white-space:nowrap;
     display:flex; align-items:center; justify-content:center; gap:6px;
     line-height:1;
+    transition:filter .15s ease;
+  }
+  /* "มากไปน้อย" (desc): ไล่เฉดสีเข้ม -> อ่อน (ซ้ายไปขวา) */
+  .sort-toggle[data-sort-dir="desc"]{
+    background:linear-gradient(90deg, var(--maroon) 0%, rgba(110,46,50,0.16) 100%);
+  }
+  /* "น้อยไปมาก" (asc): ไล่เฉดสีอ่อน -> เข้ม (ซ้ายไปขวา) */
+  .sort-toggle[data-sort-dir="asc"]{
+    background:linear-gradient(90deg, rgba(110,46,50,0.16) 0%, var(--maroon) 100%);
   }
   .sort-toggle-text{letter-spacing:0.1px;}
   .sort-toggle-arrow{
     font-size:13.5px; font-weight:800; line-height:1;
   }
-  .sort-toggle:hover{background:#F7ECD6;}
+  .sort-toggle:hover{filter:brightness(1.08);}
   .sort-toggle:active{transform:scale(0.98);}
   .sort-toggle:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
-  .chip-card.sorted .sort-toggle{background:var(--maroon); border-color:var(--maroon); color:#fff;}
+  .chip-card.sorted .sort-toggle{border-color:var(--maroon);}
   .active-filters:empty{margin:0; display:none;}
 
   .count-line{
@@ -1408,7 +1418,7 @@ function updateActiveFilterChips(){
     return `
       <div class="chip-card${id === primaryId ? ' sorted' : ''}">
         <div class="chip-title">${title}</div>
-        <button type="button" class="sort-toggle" data-sort-id="${id}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
+        <button type="button" class="sort-toggle" data-sort-id="${id}" data-sort-dir="${dir}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
       </div>`;
   }).filter(Boolean);
 
