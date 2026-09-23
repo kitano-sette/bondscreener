@@ -273,30 +273,25 @@
   }
   .sort-toggle{
     font-family:inherit; font-size:11.5px; font-weight:700; color:#fff;
-    text-shadow:0 1px 2px rgba(0,0,0,0.35);
-    background:var(--maroon); border:1px solid var(--line); border-radius:8px;
+    border:1px solid transparent; border-radius:8px;
     padding:7px 8px; cursor:pointer; width:100%;
     white-space:nowrap;
     display:flex; align-items:center; justify-content:center; gap:6px;
     line-height:1;
-    transition:filter .15s ease;
+    transition:filter .12s;
   }
-  /* "มากไปน้อย" (desc): ไล่เฉดสีเข้ม -> อ่อน (ซ้ายไปขวา) */
-  .sort-toggle[data-sort-dir="desc"]{
-    background:linear-gradient(90deg, var(--maroon) 0%, rgba(110,46,50,0.16) 100%);
-  }
-  /* "น้อยไปมาก" (asc): ไล่เฉดสีอ่อน -> เข้ม (ซ้ายไปขวา) */
-  .sort-toggle[data-sort-dir="asc"]{
-    background:linear-gradient(90deg, rgba(110,46,50,0.16) 0%, var(--maroon) 100%);
-  }
+  /* "มากไปน้อย" = ไล่เฉดสีเข้ม(ซ้าย) -> อ่อน(ขวา) */
+  .sort-toggle[data-dir="desc"]{background:linear-gradient(90deg,var(--maroon),var(--amber1));}
+  /* "น้อยไปมาก" = ไล่เฉดสีอ่อน(ซ้าย) -> เข้ม(ขวา) */
+  .sort-toggle[data-dir="asc"]{background:linear-gradient(90deg,var(--amber1),var(--maroon));}
   .sort-toggle-text{letter-spacing:0.1px;}
   .sort-toggle-arrow{
     font-size:13.5px; font-weight:800; line-height:1;
   }
-  .sort-toggle:hover{filter:brightness(1.08);}
+  .sort-toggle:hover{filter:brightness(1.06);}
   .sort-toggle:active{transform:scale(0.98);}
   .sort-toggle:focus-visible{outline:2px solid var(--amber2); outline-offset:2px;}
-  .chip-card.sorted .sort-toggle{border-color:var(--maroon);}
+  .chip-card.sorted .sort-toggle{box-shadow:0 0 0 1.5px var(--maroon), 0 6px 12px -7px rgba(110,46,50,0.7);}
   .active-filters:empty{margin:0; display:none;}
 
   .count-line{
@@ -1418,7 +1413,7 @@ function updateActiveFilterChips(){
     return `
       <div class="chip-card${id === primaryId ? ' sorted' : ''}">
         <div class="chip-title">${title}</div>
-        <button type="button" class="sort-toggle" data-sort-id="${id}" data-sort-dir="${dir}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
+        <button type="button" class="sort-toggle" data-sort-id="${id}" data-dir="${dir}" aria-label="เรียงลำดับ ${nameForAria} ${dir === 'asc' ? 'จากน้อยไปมาก' : 'จากมากไปน้อย'} (กดเพื่อสลับ)"><span class="sort-toggle-text">${sortToggleLabel(dir)}</span><span class="sort-toggle-arrow" aria-hidden="true">${sortToggleArrow(dir)}</span></button>
       </div>`;
   }).filter(Boolean);
 
