@@ -120,9 +120,20 @@
     width:100%;
     font-family:inherit; font-size:13px; color:var(--ink);
     border:1px solid var(--line); border-radius:9px;
-    padding:10px 12px 10px 34px;
+    padding:10px 34px 10px 34px;
     background:#fff;
   }
+  .search-box input::-webkit-search-cancel-button{display:none;}
+  .search-box .search-clear{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    width:26px; height:26px; padding:0; border:0; border-radius:50%;
+    background:transparent; cursor:pointer; display:none;
+    align-items:center; justify-content:center;
+  }
+  .search-box .search-clear.show{display:flex;}
+  .search-box .search-clear:hover{background:rgba(0,0,0,.06);}
+  .search-box .search-clear:focus-visible{outline:2px solid var(--amber2); outline-offset:1px;}
+  .search-box .search-clear svg{width:14px; height:14px; display:block;}
   .search-box input:focus-visible{outline:2px solid var(--amber2); outline-offset:1px;}
   .search-box .search-icon{
     position:absolute; left:11px; top:50%; transform:translateY(-50%);
@@ -808,7 +819,10 @@
       <span class="search-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="#7A6B62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       </span>
-      <input type="text" id="fSearch" placeholder="ค้นหารหัสหุ้นกู้ หรือชื่อผู้ออก">
+      <input type="text" id="fSearch" placeholder="ค้นหารหัสหุ้นกู้ หรือชื่อผู้ออก" autocomplete="off">
+      <button type="button" class="search-clear" id="searchClear" aria-label="ล้างคำค้นหา" title="ล้างคำค้นหา">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7A6B62" stroke-width="2.4" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+      </button>
     </div>
 
     <div class="budget-box">
@@ -2476,12 +2490,24 @@ document.addEventListener('change', (e)=>{
 
 ids.forEach(id=> els[id].addEventListener('change', render));
 if(searchEl) searchEl.addEventListener('input', debouncedRender);
+const searchClearEl = document.getElementById('searchClear');
+function updateSearchClear(){
+  if(searchClearEl && searchEl) searchClearEl.classList.toggle('show', searchEl.value.length > 0);
+}
+if(searchEl) searchEl.addEventListener('input', updateSearchClear);
+if(searchClearEl) searchClearEl.addEventListener('click', ()=>{
+  searchEl.value = "";
+  updateSearchClear();
+  render();
+  searchEl.focus();
+});
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   ids.forEach(id=> els[id].value = "");
   resetMultiFilters();
   sortPrefs = {}; sortOrder = [];
   budgetMinEl.value = ""; budgetMaxEl.value = ""; updateBudgetHints();
   if(searchEl) searchEl.value = "";
+  updateSearchClear();
   render();
 });
 
